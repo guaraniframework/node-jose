@@ -1,0 +1,82 @@
+{
+  "name": "@guarani/jose",
+  "version": "1.0.0",
+  "description": "Implementation of the RFCs of the JOSE Working Group.",
+  "license": "MIT",
+  "homepage": "https://github.com/guaraniframework/node-jose#readme",
+  "main": "dist/src/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm exec tsc -p tsconfig.build.json",
+    "prepare": "pnpm exec husky",
+    "test": "pnpm exec jest",
+    "release": "pnpm run build && pnpm pack --pack-destination release && pnpm publish --access public",
+    "postpublish": "rm -rf dist release"
+  },
+  "bugs": {
+    "url": "https://github.com/guaraniframework/node-jose/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/guaraniframework/node-jose.git"
+  },
+  "author": {
+    "name": "Revensky",
+    "url": "https://github.com/revensky"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "keywords": [
+    "jose",
+    "json",
+    "web",
+    "key",
+    "set",
+    "keyset",
+    "token",
+    "signature",
+    "encryption",
+    "algorithm",
+    "jws",
+    "jwe",
+    "jwk",
+    "jwks",
+    "jwa",
+    "jwt"
+  ],
+  "dependencies": {
+    "@guarani/primitives": "^1.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
+    "@eslint/js": "^10.0.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.2.1",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.12.2",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "jest-environment-node": "^30.2.0",
+    "jest-extended": "^7.0.0",
+    "jest-util": "^30.2.0",
+    "jsonc-eslint-parser": "^2.4.2",
+    "lint-staged": "^16.2.7",
+    "neostandard": "^0.12.2",
+    "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.0"
+  }
+}
