@@ -1,3 +1,6 @@
+// Exceptions
+export { JoseException } from './lib/exceptions/jose.exception';
+
 // JSON Web Algorithms
 export { type JweAlg } from './lib/jwa/jwe/jwe-alg.type';
 export { type JweEnc } from './lib/jwa/jwe/jwe-enc.type';
