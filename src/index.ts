@@ -1,6 +1,8 @@
 // Exceptions
 export { InvalidJwkException } from './lib/exceptions/invalid-jwk.exception';
+export { InvalidJwksException } from './lib/exceptions/invalid-jwks.exception';
 export { JoseException } from './lib/exceptions/jose.exception';
+export { JwkNotFoundException } from './lib/exceptions/jwk-not-found.exception';
 
 // JSON Web Algorithms
 export { type JweAlg } from './lib/jwa/jwe/jwe-alg.type';
@@ -25,5 +27,11 @@ export { type RsaPrivateJwkParams } from './lib/jwa/jwk/rsa/rsa-private-jwk.para
 export { RsaPublicJwk } from './lib/jwa/jwk/rsa/rsa-public-jwk';
 export { type RsaPublicJwkParams } from './lib/jwa/jwk/rsa/rsa-public-jwk.params';
 export { type JwsAlg } from './lib/jwa/jws/jws-alg.type';
+
+// JSON Web Key
 export { Jwk } from './lib/jwk/jwk';
 export { type JwkParams } from './lib/jwk/jwk.params';
+
+// JSON Web Key Set
+export { Jwks } from './lib/jwks/jwks';
+export { type JwksParams } from './lib/jwks/jwks.params';
