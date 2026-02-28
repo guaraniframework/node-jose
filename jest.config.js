@@ -9,4 +9,5 @@ export default {
     tsconfig: 'tsconfig.spec.json',
   }),
   setupFilesAfterEnv: ['jest-extended/all'],
+  coverageDirectory: 'coverage',
 };
