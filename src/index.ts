@@ -1,8 +1,13 @@
 // Exceptions
+export { InvalidJoseHeaderException } from './lib/exceptions/invalid-jose-header.exception';
 export { InvalidJwkException } from './lib/exceptions/invalid-jwk.exception';
 export { InvalidJwksException } from './lib/exceptions/invalid-jwks.exception';
 export { JoseException } from './lib/exceptions/jose.exception';
 export { JwkNotFoundException } from './lib/exceptions/jwk-not-found.exception';
+
+// JOSE
+export { JoseHeader } from './lib/jose/jose-header';
+export { type JoseHeaderParams } from './lib/jose/jose-header.params';
 
 // JSON Web Algorithms
 export { type JweAlg } from './lib/jwa/jwe/jwe-alg.type';
