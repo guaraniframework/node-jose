@@ -2,6 +2,7 @@
 export { InvalidJoseHeaderException } from './lib/exceptions/invalid-jose-header.exception';
 export { InvalidJwkException } from './lib/exceptions/invalid-jwk.exception';
 export { InvalidJwksException } from './lib/exceptions/invalid-jwks.exception';
+export { InvalidJwsException } from './lib/exceptions/invalid-jws.exception';
 export { JoseException } from './lib/exceptions/jose.exception';
 export { JwkNotFoundException } from './lib/exceptions/jwk-not-found.exception';
 
@@ -40,3 +41,7 @@ export { type JwkParams } from './lib/jwk/jwk.params';
 // JSON Web Key Set
 export { Jwks } from './lib/jwks/jwks';
 export { type JwksParams } from './lib/jwks/jwks.params';
+
+// JSON Web Signature
+export { JwsHeader } from './lib/jws/header/jws-header';
+export { type JwsHeaderParams } from './lib/jws/header/jws-header.params';
