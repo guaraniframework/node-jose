@@ -1,5 +1,6 @@
 // #region JOSE Errors
 export { InvalidJsonWebKeyError } from './lib/errors/invalid-jsonwebkey.error';
+export { InvalidJsonWebKeySetError } from './lib/errors/invalid-jsonwebkeyset.error';
 export { JoseError } from './lib/errors/jose.error';
 // #endregion
 
@@ -46,6 +47,8 @@ export { type JsonWebKeyParameters } from './lib/jwk/jsonwebkey.parameters';
 // #endregion
 
 // #region JSON Web Key Set
+export { createJsonWebKeySet } from './lib/jwks/create-jsonwebkeyset';
+export { type JsonWebKeySet } from './lib/jwks/jsonwebkeyset';
 export { type JsonWebKeySetParameters } from './lib/jwks/jsonwebkeyset.parameters';
 // #endregion
 
