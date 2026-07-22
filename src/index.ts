@@ -1,10 +1,12 @@
 // #region JOSE Errors
+export { InvalidJoseHeaderError } from './lib/errors/invalid-jose-header.error';
 export { InvalidJsonWebKeyError } from './lib/errors/invalid-jsonwebkey.error';
 export { InvalidJsonWebKeySetError } from './lib/errors/invalid-jsonwebkeyset.error';
 export { JoseError } from './lib/errors/jose.error';
 // #endregion
 
 // #region JOSE
+export { type JoseHeader } from './lib/jose/jose-header';
 export { type JoseHeaderParameters } from './lib/jose/jose-header.parameters';
 // #endregion
 
