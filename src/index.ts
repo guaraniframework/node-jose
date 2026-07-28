@@ -1,5 +1,6 @@
 // #region JOSE Errors
 export { InvalidJoseHeaderError } from './lib/errors/invalid-jose-header.error';
+export { InvalidJsonWebEncryptionError } from './lib/errors/invalid-jsonwebencryption.error';
 export { InvalidJsonWebKeyError } from './lib/errors/invalid-jsonwebkey.error';
 export { InvalidJsonWebKeySetError } from './lib/errors/invalid-jsonwebkeyset.error';
 export { JoseError } from './lib/errors/jose.error';
@@ -38,6 +39,7 @@ export { type DigitalSignatureAlgorithm } from './lib/jwa/jws/digital-signature-
 // #endregion
 
 // #region JSON Web Encryption
+export { type JsonWebEncryptionHeader } from './lib/jwe/jsonwebencryption-header';
 export { type JsonWebEncryptionHeaderParameters } from './lib/jwe/jsonwebencryption-header.parameters';
 // #endregion
 
