@@ -3,6 +3,7 @@ export { InvalidJoseHeaderError } from './lib/errors/invalid-jose-header.error';
 export { InvalidJsonWebEncryptionError } from './lib/errors/invalid-jsonwebencryption.error';
 export { InvalidJsonWebKeyError } from './lib/errors/invalid-jsonwebkey.error';
 export { InvalidJsonWebKeySetError } from './lib/errors/invalid-jsonwebkeyset.error';
+export { InvalidJsonWebSignatureError } from './lib/errors/invalid-jsonwebsignature.error';
 export { JoseError } from './lib/errors/jose.error';
 // #endregion
 
@@ -57,6 +58,7 @@ export { type JsonWebKeySetParameters } from './lib/jwks/jsonwebkeyset.parameter
 // #endregion
 
 // #region JSON Web Signature
+export { type JsonWebSignatureHeader } from './lib/jws/jsonwebsignature-header';
 export { type JsonWebSignatureHeaderParameters } from './lib/jws/jsonwebsignature-header.parameters';
 // #endregion
 
