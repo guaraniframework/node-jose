@@ -38,7 +38,7 @@ export class JsonWebKeySet {
   }
 
   /**
-   * Finds and returns a JSON Web Key that satisfies the provided predicate or throws an exception if none is found.
+   * Finds and returns a JSON Web Key that satisfies the provided predicate or throws an error if none is found.
    *
    * @param predicate Predicate used to locate the requested JSON Web Key.
    * @throws {InvalidJsonWebKeyError} No JSON Web Key matches the criteria in the JSON Web Key Set.

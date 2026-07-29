@@ -58,7 +58,7 @@ export async function getX509CertificateChain(
     }
   }
 
-  if (typeof parameters.x5t !== 'undefined') {
+  if ('x5t' in parameters) {
     const fingerprint = Buffer.from(certificateChain[0]!.fingerprint.replaceAll(':', ''), 'hex');
     const thumbprint = Buffer.from(parameters.x5t, 'base64url');
 
@@ -67,7 +67,7 @@ export async function getX509CertificateChain(
     }
   }
 
-  if (typeof parameters['x5t#S256'] !== 'undefined') {
+  if ('x5t#S256' in parameters) {
     const fingerprint = Buffer.from(certificateChain[0]!.fingerprint256.replaceAll(':', ''), 'hex');
     const thumbprint = Buffer.from(parameters['x5t#S256'], 'base64url');
 

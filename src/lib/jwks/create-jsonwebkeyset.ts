@@ -65,8 +65,8 @@ async function validateJsonWebKeySetParameters(parameters: JsonWebKeySetParamete
   try {
     const keys = await Promise.all(parameters.keys.map(createJsonWebKey));
     return validateJsonWebKeys(keys);
-  } catch (exception: unknown) {
-    throw new InvalidJsonWebKeySetError('Invalid JSON Web Key Set Parameter "keys".', { cause: exception });
+  } catch (error: unknown) {
+    throw new InvalidJsonWebKeySetError('Invalid JSON Web Key Set Parameter "keys".', { cause: error });
   }
 }
 
