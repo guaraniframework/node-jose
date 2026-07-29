@@ -102,7 +102,7 @@ export class JsonWebEncryptionHeader<
    * Instantiates a new JSON Web Encryption Header.
    *
    * @param parameters JSON Web Encryption Header Parameters.
-   * @throws {InvalidJsonWebEncryptionError} The provided JSON Web Encryption Header Parameters are invalid.
+   * @throws {InvalidJoseHeaderError} The provided JSON Web Encryption Header Parameters are invalid.
    */
   public constructor(parameters: T) {
     super(parameters);

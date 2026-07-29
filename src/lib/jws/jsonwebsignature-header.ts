@@ -57,7 +57,7 @@ export class JsonWebSignatureHeader extends JoseHeader {
    * Instantiates a new JSON Web Signature Header.
    *
    * @param parameters JSON Web Signature Header Parameters.
-   * @throws {InvalidJsonWebSignatureError} The provided JSON Web Signature Header Parameters are invalid.
+   * @throws {InvalidJoseHeaderError} The provided JSON Web Signature Header Parameters are invalid.
    */
   public constructor(parameters: JsonWebSignatureHeaderParameters) {
     super(parameters);
