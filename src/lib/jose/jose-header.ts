@@ -44,9 +44,7 @@ export abstract class JoseHeader {
    * NodeJS Crypto Key.
    */
   public set jsonWebKey(jsonWebKey: JsonWebKey | null) {
-    if (typeof this.#jsonWebKey === 'undefined') {
-      this.#jsonWebKey = jsonWebKey;
-    }
+    this.#jsonWebKey = jsonWebKey;
   }
 
   /**
@@ -64,9 +62,7 @@ export abstract class JoseHeader {
    * JSON Web Key X.509 Certificate Chain.
    */
   public set certificateChain(certificateChain: X509Certificate[] | null) {
-    if (typeof this.#certificateChain === 'undefined') {
-      this.#certificateChain = certificateChain;
-    }
+    this.#certificateChain = certificateChain;
   }
 
   /**

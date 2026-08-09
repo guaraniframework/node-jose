@@ -42,6 +42,16 @@ export { type DigitalSignatureAlgorithm } from './lib/jwa/jws/digital-signature-
 // #region JSON Web Encryption
 export { type JsonWebEncryptionHeader } from './lib/jwe/jsonwebencryption-header';
 export { type JsonWebEncryptionHeaderParameters } from './lib/jwe/jsonwebencryption-header.parameters';
+export { jwe } from './lib/jwe/serializations';
+export { type CompactJsonWebEncryption } from './lib/jwe/serializations/compact/compact-jsonwebencryption';
+export { type CompactJsonWebEncryptionParameters } from './lib/jwe/serializations/compact/compact-jsonwebencryption.parameters';
+export { type CompactJsonWebEncryptionToken } from './lib/jwe/serializations/compact/compact-jsonwebencryption.token';
+export { type FlattenedJsonWebEncryption } from './lib/jwe/serializations/flattened/flattened-jsonwebencryption';
+export { type FlattenedJsonWebEncryptionParameters } from './lib/jwe/serializations/flattened/flattened-jsonwebencryption.parameters';
+export { type FlattenedJsonWebEncryptionToken } from './lib/jwe/serializations/flattened/flattened-jsonwebencryption.token';
+export { type GeneralJsonWebEncryption } from './lib/jwe/serializations/general/general-jsonwebencryption';
+export { type GeneralJsonWebEncryptionParameters } from './lib/jwe/serializations/general/general-jsonwebencryption.parameters';
+export { type GeneralJsonWebEncryptionToken } from './lib/jwe/serializations/general/general-jsonwebencryption.token';
 // #endregion
 
 // #region JSON Web Key

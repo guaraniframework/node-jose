@@ -34,7 +34,7 @@ export class JsonWebEncryptionHeader<
    * @see {@link https://www.rfc-editor.org/rfc/rfc7518.html#section-4.1|RFC 7518 "alg" (Algorithm) Header Parameter Values for JWE}
    * @see {@link https://www.rfc-editor.org/rfc/rfc8037.html#section-3.2|RFC 8037 ECDH-ES}
    */
-  static readonly #keyManagementAlgorithms: KeyManagementAlgorithm[] = [
+  public static readonly keyManagementAlgorithms: KeyManagementAlgorithm[] = [
     'A128GCMKW',
     'A128KW',
     'A192GCMKW',
@@ -62,7 +62,7 @@ export class JsonWebEncryptionHeader<
    * @see {@link https://www.rfc-editor.org/rfc/rfc7516.html#section-4.1.2|RFC 7516 "enc" (Encryption Algorithm) Header Parameter}
    * @see {@link https://www.rfc-editor.org/rfc/rfc7518.html#section-5.1|RFC 7518 "enc" (Encryption Algorithm) Header Parameter Values for JWE}
    */
-  static readonly #contentEncryptionAlgorithms: ContentEncryptionAlgorithm[] = [
+  public static readonly contentEncryptionAlgorithms: ContentEncryptionAlgorithm[] = [
     'A128CBC-HS256',
     'A128GCM',
     'A192CBC-HS384',
@@ -76,7 +76,7 @@ export class JsonWebEncryptionHeader<
    *
    * @see {@link https://www.rfc-editor.org/rfc/rfc7516.html#section-4.1.3|RFC 7516 "zip" (Compression Algorithm) Header Parameter}
    */
-  static readonly #compressionAlgorithms: CompressionAlgorithm[] = ['DEF'];
+  public static readonly compressionAlgorithms: CompressionAlgorithm[] = ['DEF'];
 
   /**
    * JSON Web Encryption Header Parameters.
@@ -121,17 +121,17 @@ export class JsonWebEncryptionHeader<
   protected static override validateJoseHeaderParameters(parameters: JsonWebEncryptionHeaderParameters): void {
     super.validateJoseHeaderParameters(parameters);
 
-    if (!isNonEmptyString(parameters.alg) || !this.#keyManagementAlgorithms.includes(parameters.alg)) {
+    if (!isNonEmptyString(parameters.alg) || !this.keyManagementAlgorithms.includes(parameters.alg)) {
       throw new InvalidJoseHeaderError('Invalid JOSE Header Parameter "alg".');
     }
 
-    if (!isNonEmptyString(parameters.enc) || !this.#contentEncryptionAlgorithms.includes(parameters.enc)) {
+    if (!isNonEmptyString(parameters.enc) || !this.contentEncryptionAlgorithms.includes(parameters.enc)) {
       throw new InvalidJoseHeaderError('Invalid JOSE Header Parameter "enc".');
     }
 
     if (
       'zip' in parameters &&
-      (!isNonEmptyString(parameters.zip) || !this.#compressionAlgorithms.includes(parameters.zip))
+      (!isNonEmptyString(parameters.zip) || !this.compressionAlgorithms.includes(parameters.zip))
     ) {
       throw new InvalidJoseHeaderError('Invalid JOSE Header Parameter "zip".');
     }
