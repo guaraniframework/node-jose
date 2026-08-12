@@ -70,6 +70,16 @@ export { type JsonWebKeySetParameters } from './lib/jwks/jsonwebkeyset.parameter
 // #region JSON Web Signature
 export { type JsonWebSignatureHeader } from './lib/jws/jsonwebsignature-header';
 export { type JsonWebSignatureHeaderParameters } from './lib/jws/jsonwebsignature-header.parameters';
+export { jws } from './lib/jws/serializations';
+export { type CompactJsonWebSignature } from './lib/jws/serializations/compact/compact-jsonwebsignature';
+export { type CompactJsonWebSignatureParameters } from './lib/jws/serializations/compact/compact-jsonwebsignature.parameters';
+export { type CompactJsonWebSignatureToken } from './lib/jws/serializations/compact/compact-jsonwebsignature.token';
+export { type FlattenedJsonWebSignature } from './lib/jws/serializations/flattened/flattened-jsonwebsignature';
+export { type FlattenedJsonWebSignatureParameters } from './lib/jws/serializations/flattened/flattened-jsonwebsignature.parameters';
+export { type FlattenedJsonWebSignatureToken } from './lib/jws/serializations/flattened/flattened-jsonwebsignature.token';
+export { type GeneralJsonWebSignature } from './lib/jws/serializations/general/general-jsonwebsignature';
+export { type GeneralJsonWebSignatureParameters } from './lib/jws/serializations/general/general-jsonwebsignature.parameters';
+export { type GeneralJsonWebSignatureToken } from './lib/jws/serializations/general/general-jsonwebsignature.token';
 // #endregion
 
 // #region JSON Web Token

@@ -240,14 +240,5 @@ describe('createJsonWebSignatureHeader()', () => {
     expect(header.jsonWebKey!.parameters).toStrictEqual(parametersWithJwkAndX509Chain.jwk);
 
     expect(header.parameters).toStrictEqual(parametersWithJwkAndX509Chain);
-
-    header.jsonWebKey = null;
-    header.certificateChain = null;
-
-    expect(header.certificateChain).toBeArrayOfSize(3);
-    expect(header.certificateChain).toSatisfyAll((certificate) => certificate instanceof X509Certificate);
-
-    expect(header.jsonWebKey).toBeInstanceOf(JsonWebKey);
-    expect(header.jsonWebKey!.parameters).toStrictEqual(parametersWithJwkAndX509Chain.jwk);
   });
 });

@@ -25,7 +25,7 @@ export class JsonWebSignatureHeader extends JoseHeader {
    * @see {@link https://www.rfc-editor.org/rfc/rfc8037.html#section-3.1|RFC 8037 Signatures}
    * @see {@link https://www.rfc-editor.org/rfc/rfc8812.html#section-3.2|RFC 8812 ECDSA Signature with secp256k1 Curve}
    */
-  static readonly #digitalSignatureAlgorithms: DigitalSignatureAlgorithm[] = [
+  public static readonly digitalSignatureAlgorithms: DigitalSignatureAlgorithm[] = [
     'ES256',
     'ES256K',
     'ES384',
@@ -74,7 +74,7 @@ export class JsonWebSignatureHeader extends JoseHeader {
   protected static override validateJoseHeaderParameters(parameters: JsonWebSignatureHeaderParameters): void {
     super.validateJoseHeaderParameters(parameters);
 
-    if (!isNonEmptyString(parameters.alg) || !this.#digitalSignatureAlgorithms.includes(parameters.alg)) {
+    if (!isNonEmptyString(parameters.alg) || !this.digitalSignatureAlgorithms.includes(parameters.alg)) {
       throw new InvalidJoseHeaderError('Invalid JOSE Header Parameter "alg".');
     }
 
