@@ -40,44 +40,55 @@ export class AESGCMJsonWebEncryptionContentEncryptionBackend extends JsonWebEncr
    * Encrypts the provided Plaintext and Additional Authenticated Data.
    *
    * @param plaintext Plaintext to be encrypted.
-   * @param cek Content Encryption Key.
-   * @param aad Additional Authenticated Data.
-   * @param iv Initialization Vector.
+   * @param contentEncryptionKey Content Encryption Key.
+   * @param additionalAuthenticatedData Additional Authenticated Data.
+   * @param initializationVector Initialization Vector.
    * @throws {InvalidJsonWebEncryptionError} Failed to encrypt the provided Plaintext.
    * @returns Ciphertext and Authentication Tag.
    */
-  public async encrypt(plaintext: Buffer, cek: Buffer, aad: Buffer, iv: Buffer): Promise<[Buffer, Buffer]> {
-    this.validateContentEncryptionKey(cek);
-    this.validateInitializationVector(iv);
+  public async encrypt(
+    plaintext: Buffer,
+    contentEncryptionKey: Buffer,
+    additionalAuthenticatedData: Buffer,
+    initializationVector: Buffer,
+  ): Promise<[Buffer, Buffer]> {
+    this.validateContentEncryptionKey(contentEncryptionKey);
+    this.validateInitializationVector(initializationVector);
 
-    const cipher = createCipheriv(this.cipher, cek, iv, { authTagLength: 16 });
-    cipher.setAAD(aad);
+    const cipher = createCipheriv(this.cipher, contentEncryptionKey, initializationVector, { authTagLength: 16 });
+    cipher.setAAD(additionalAuthenticatedData);
 
     const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-    const tag = cipher.getAuthTag();
+    const authenticationTag = cipher.getAuthTag();
 
-    return [ciphertext, tag];
+    return [ciphertext, authenticationTag];
   }
 
   /**
    * Decrypts the provided Ciphertext.
    *
    * @param ciphertext Ciphertext to be decrypted.
-   * @param cek Content Encryption Key.
-   * @param aad Additional Authenticated Data.
-   * @param iv Initialization Vector.
-   * @param tag Authentication Tag.
+   * @param contentEncryptionKey Content Encryption Key.
+   * @param additionalAuthenticatedData Additional Authenticated Data.
+   * @param initializationVector Initialization Vector.
+   * @param authenticationTag Authentication Tag.
    * @throws {InvalidJsonWebEncryptionError} Failed to decrypt the provided Ciphertext.
    * @returns Plaintext.
    */
-  public async decrypt(ciphertext: Buffer, cek: Buffer, aad: Buffer, iv: Buffer, tag: Buffer): Promise<Buffer> {
-    this.validateContentEncryptionKey(cek);
-    this.validateInitializationVector(iv);
+  public async decrypt(
+    ciphertext: Buffer,
+    contentEncryptionKey: Buffer,
+    additionalAuthenticatedData: Buffer,
+    initializationVector: Buffer,
+    authenticationTag: Buffer,
+  ): Promise<Buffer> {
+    this.validateContentEncryptionKey(contentEncryptionKey);
+    this.validateInitializationVector(initializationVector);
 
-    const decipher = createDecipheriv(this.cipher, cek, iv, { authTagLength: 16 });
+    const decipher = createDecipheriv(this.cipher, contentEncryptionKey, initializationVector, { authTagLength: 16 });
 
-    decipher.setAAD(aad);
-    decipher.setAuthTag(tag);
+    decipher.setAAD(additionalAuthenticatedData);
+    decipher.setAuthTag(authenticationTag);
 
     try {
       return Buffer.concat([decipher.update(ciphertext), decipher.final()]);

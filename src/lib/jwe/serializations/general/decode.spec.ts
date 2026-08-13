@@ -901,13 +901,13 @@ describe('decode()', () => {
   const compressedCiphertext = Buffer.from('7_74Yt9JQPazdQVzwCiocFWXSAtgczzDQVUY9WXJ7KA', 'base64url');
   const additionalAuthenticatedData = Buffer.from('YWRkaXRpb25hbF9hdXRoZW50aWNhdGVkX2RhdGE', 'base64url');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
 
   beforeEach(() => {
     https.get = jest.fn().mockImplementation((_, cb) => {
       const stream = new Stream();
       cb(stream);
-      stream.emit('data', jsonStringify({ keys: [jwk.parameters] }));
+      stream.emit('data', jsonStringify({ keys: [jsonWebKey.parameters] }));
       stream.emit('end');
     });
   });

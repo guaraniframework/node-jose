@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 import { X509Certificate } from 'crypto';
 
 import { InvalidJsonWebKeyError } from '../errors/invalid-jsonwebkey.error';
-import { createJsonWebKey } from './create-jsonwebkey';
+import { create } from './create';
 import { JsonWebKey } from './jsonwebkey';
 import { JsonWebKeyParameters } from './jsonwebkey.parameters';
 
@@ -21,7 +21,7 @@ const invalidParameters: any[] = [
   [],
 ];
 
-const invalidKtys: any[] = [
+const invalidKeyTypes: any[] = [
   undefined,
   null,
   true,
@@ -38,7 +38,7 @@ const invalidKtys: any[] = [
   'a',
 ];
 
-describe('createJsonWebKey()', () => {
+describe('create()', () => {
   const ellipticCurveParameters: JsonWebKeyParameters = {
     kty: 'EC',
     crv: 'P-256',
@@ -171,78 +171,70 @@ describe('createJsonWebKey()', () => {
   it.each(invalidParameters)(
     'should throw when the provided JSON Web Key Parameters is invalid.',
     async (parameters) => {
-      await expect(createJsonWebKey(parameters)).rejects.toThrowWithMessage(
+      await expect(create(parameters)).rejects.toThrowWithMessage(
         TypeError,
         'The provided JSON Web Key Parameters is invalid.',
       );
     },
   );
 
-  it.each(invalidKtys)('should throw when the provided JSON Web Key Parameter "kty" is invalid.', async (kty) => {
-    await expect(createJsonWebKey({ ...parameters, kty })).rejects.toThrowWithMessage(
+  it.each(invalidKeyTypes)('should throw when the provided JSON Web Key Parameter "kty" is invalid.', async (kty) => {
+    await expect(create({ ...parameters, kty })).rejects.toThrowWithMessage(
       InvalidJsonWebKeyError,
       'Invalid JSON Web Key Parameter "kty".',
     );
   });
 
   it('should return an Elliptic Curve JSON Web Key.', async () => {
-    let jwk!: JsonWebKey;
+    let jsonWebKey!: JsonWebKey;
 
-    await expect(async () => (jwk = await createJsonWebKey(ellipticCurveParameters))).resolves.not.toThrow();
+    await expect(async () => (jsonWebKey = await create(ellipticCurveParameters))).resolves.not.toThrow();
 
-    expect(jwk.parameters).toStrictEqual(ellipticCurveParameters);
-    expect(ellipticCurveParameters).toMatchObject(jwk.cryptoKey.export({ format: 'jwk' }));
-    expect(jwk.certificateChain).toBeNull();
+    expect(jsonWebKey.parameters).toStrictEqual(ellipticCurveParameters);
+    expect(ellipticCurveParameters).toMatchObject(jsonWebKey.cryptoKey.export({ format: 'jwk' }));
+    expect(jsonWebKey.certificateChain).toBeNull();
   });
 
   it('should return an Octet Key Pair JSON Web Key.', async () => {
-    let jwk!: JsonWebKey;
+    let jsonWebKey!: JsonWebKey;
 
-    await expect(async () => (jwk = await createJsonWebKey(octetKeyPairParameters))).resolves.not.toThrow();
+    await expect(async () => (jsonWebKey = await create(octetKeyPairParameters))).resolves.not.toThrow();
 
-    expect(jwk.parameters).toStrictEqual(octetKeyPairParameters);
-    expect(octetKeyPairParameters).toMatchObject(jwk.cryptoKey.export({ format: 'jwk' }));
-    expect(jwk.certificateChain).toBeNull();
+    expect(jsonWebKey.parameters).toStrictEqual(octetKeyPairParameters);
+    expect(octetKeyPairParameters).toMatchObject(jsonWebKey.cryptoKey.export({ format: 'jwk' }));
+    expect(jsonWebKey.certificateChain).toBeNull();
   });
 
   it('should return an RSA JSON Web Key.', async () => {
-    let jwk!: JsonWebKey;
+    let jsonWebKey!: JsonWebKey;
 
-    await expect(async () => (jwk = await createJsonWebKey(rsaParameters))).resolves.not.toThrow();
+    await expect(async () => (jsonWebKey = await create(rsaParameters))).resolves.not.toThrow();
 
-    expect(jwk.parameters).toStrictEqual(rsaParameters);
-    expect(rsaParameters).toMatchObject(jwk.cryptoKey.export({ format: 'jwk' }));
-    expect(jwk.certificateChain).toBeNull();
+    expect(jsonWebKey.parameters).toStrictEqual(rsaParameters);
+    expect(rsaParameters).toMatchObject(jsonWebKey.cryptoKey.export({ format: 'jwk' }));
+    expect(jsonWebKey.certificateChain).toBeNull();
   });
 
   it('should return an Octet Sequence JSON Web Key.', async () => {
-    let jwk!: JsonWebKey;
+    let jsonWebKey!: JsonWebKey;
 
-    await expect(async () => (jwk = await createJsonWebKey(octetSequenceParameters))).resolves.not.toThrow();
+    await expect(async () => (jsonWebKey = await create(octetSequenceParameters))).resolves.not.toThrow();
 
-    expect(jwk.parameters).toStrictEqual(octetSequenceParameters);
-    expect(octetSequenceParameters).toMatchObject(jwk.cryptoKey.export({ format: 'jwk' }));
-    expect(jwk.certificateChain).toBeNull();
+    expect(jsonWebKey.parameters).toStrictEqual(octetSequenceParameters);
+    expect(octetSequenceParameters).toMatchObject(jsonWebKey.cryptoKey.export({ format: 'jwk' }));
+    expect(jsonWebKey.certificateChain).toBeNull();
   });
 
   it('should return a JSON Web Key.', async () => {
-    let jwk!: JsonWebKey;
+    let jsonWebKey!: JsonWebKey;
 
-    await expect(async () => (jwk = await createJsonWebKey(parameters))).resolves.not.toThrow();
+    await expect(async () => (jsonWebKey = await create(parameters))).resolves.not.toThrow();
 
-    expect(jwk.parameters).toStrictEqual(parameters);
+    expect(jsonWebKey.parameters).toStrictEqual(parameters);
 
-    expect(parameters).toMatchObject(jwk.cryptoKey.export({ format: 'jwk' }));
+    expect(parameters).toMatchObject(jsonWebKey.cryptoKey.export({ format: 'jwk' }));
 
-    expect(jwk.certificateChain).toBeArrayOfSize(3);
-    expect(jwk.certificateChain).toSatisfyAll((certificate) => certificate instanceof X509Certificate);
-
-    const { certificateChain, cryptoKey } = jwk;
-
-    jwk.cryptoKey = null!;
-    jwk.certificateChain = null;
-
-    expect(jwk.cryptoKey).toBe(cryptoKey);
-    expect(jwk.certificateChain).toBe(certificateChain);
+    expect(jsonWebKey.certificateChain).toBeArrayOfSize(3);
+    expect(jsonWebKey.certificateChain).toSatisfyAll((certificate) => certificate instanceof X509Certificate);
   });
 });

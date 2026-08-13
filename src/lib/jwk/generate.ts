@@ -16,96 +16,97 @@ import { JsonWebKey } from './jsonwebkey';
 /**
  * Generates an Elliptic Curve JSON Web Key based on the provided options.
  *
- * @param kty JSON Web Key Key Type.
+ * @param keyType JSON Web Key Key Type.
  * @param options Elliptic Curve JSON Web Key Generation Options.
  * @throws {TypeError} One of the provided arguments is invalid.
  * @returns Generated Elliptic Curve JSON Web Key.
  */
-export async function generateJsonWebKey(
-  kty: 'EC',
-  options: GenerateEllipticCurveJsonWebKeyOptions,
-): Promise<JsonWebKey>;
+export async function generate(keyType: 'EC', options: GenerateEllipticCurveJsonWebKeyOptions): Promise<JsonWebKey>;
 
 /**
  * Generates an Octet Key Pair JSON Web Key based on the provided options.
  *
- * @param kty JSON Web Key Key Type.
+ * @param keyType JSON Web Key Key Type.
  * @param options Octet Key Pair JSON Web Key Generation Options.
  * @throws {TypeError} One of the provided arguments is invalid.
  * @returns Generated Octet Key Pair JSON Web Key.
  */
-export async function generateJsonWebKey(
-  kty: 'OKP',
-  options: GenerateOctetKeyPairJsonWebKeyOptions,
-): Promise<JsonWebKey>;
+export async function generate(keyType: 'OKP', options: GenerateOctetKeyPairJsonWebKeyOptions): Promise<JsonWebKey>;
 
 /**
  * Generates an RSA JSON Web Key based on the provided options.
  *
- * @param kty JSON Web Key Key Type.
+ * @param keyType JSON Web Key Key Type.
  * @param options RSA JSON Web Key Generation Options.
  * @throws {TypeError} One of the provided arguments is invalid.
  * @returns Generated RSA JSON Web Key.
  */
-export async function generateJsonWebKey(kty: 'RSA', options: GenerateRsaJsonWebKeyOptions): Promise<JsonWebKey>;
+export async function generate(keyType: 'RSA', options: GenerateRsaJsonWebKeyOptions): Promise<JsonWebKey>;
 
 /**
  * Generates an Octet Sequence JSON Web Key based on the provided options.
  *
- * @param kty JSON Web Key Key Type.
+ * @param keyType JSON Web Key Key Type.
  * @param options Octet Sequence JSON Web Key Generation Options.
  * @throws {TypeError} One of the provided arguments is invalid.
  * @returns Generated Octet Sequence JSON Web Key.
  */
-export async function generateJsonWebKey(
-  kty: 'oct',
-  options: GenerateOctetSequenceJsonWebKeyOptions,
-): Promise<JsonWebKey>;
+export async function generate(keyType: 'oct', options: GenerateOctetSequenceJsonWebKeyOptions): Promise<JsonWebKey>;
 
 /**
  * Generates a JSON Web Key based on the provided options.
  *
- * @param kty JSON Web Key Key Type.
+ * @param keyType JSON Web Key Key Type.
  * @param options JSON Web Key Generation Options.
  * @throws {TypeError} One of the provided arguments is invalid.
  * @returns Generated JSON Web Key.
  */
-export async function generateJsonWebKey(kty: KeyType, options: Record<string, any>): Promise<JsonWebKey> {
-  switch (kty) {
+export async function generate(keyType: KeyType, options: Record<string, any>): Promise<JsonWebKey> {
+  switch (keyType) {
     case 'EC': {
       const cryptoKey = await EllipticCurveJsonWebKey.generate(options as GenerateEllipticCurveJsonWebKeyOptions);
-      const jwk = new EllipticCurveJsonWebKey(cryptoKey.export({ format: 'jwk' }) as EllipticCurveJsonWebKeyParameters);
 
-      jwk.cryptoKey = cryptoKey;
+      const jsonWebKey = new EllipticCurveJsonWebKey(
+        cryptoKey.export({ format: 'jwk' }) as EllipticCurveJsonWebKeyParameters,
+      );
 
-      return jwk;
+      jsonWebKey.cryptoKey = cryptoKey;
+
+      return jsonWebKey;
     }
 
     case 'OKP': {
       const cryptoKey = await OctetKeyPairJsonWebKey.generate(options as GenerateOctetKeyPairJsonWebKeyOptions);
-      const jwk = new OctetKeyPairJsonWebKey(cryptoKey.export({ format: 'jwk' }) as OctetKeyPairJsonWebKeyParameters);
 
-      jwk.cryptoKey = cryptoKey;
+      const jsonWebKey = new OctetKeyPairJsonWebKey(
+        cryptoKey.export({ format: 'jwk' }) as OctetKeyPairJsonWebKeyParameters,
+      );
 
-      return jwk;
+      jsonWebKey.cryptoKey = cryptoKey;
+
+      return jsonWebKey;
     }
 
     case 'RSA': {
       const cryptoKey = await RsaJsonWebKey.generate(options as GenerateRsaJsonWebKeyOptions);
-      const jwk = new RsaJsonWebKey(cryptoKey.export({ format: 'jwk' }) as RsaJsonWebKeyParameters);
 
-      jwk.cryptoKey = cryptoKey;
+      const jsonWebKey = new RsaJsonWebKey(cryptoKey.export({ format: 'jwk' }) as RsaJsonWebKeyParameters);
 
-      return jwk;
+      jsonWebKey.cryptoKey = cryptoKey;
+
+      return jsonWebKey;
     }
 
     case 'oct': {
       const cryptoKey = await OctetSequenceJsonWebKey.generate(options as GenerateOctetSequenceJsonWebKeyOptions);
-      const jwk = new OctetSequenceJsonWebKey(cryptoKey.export({ format: 'jwk' }) as OctetSequenceJsonWebKeyParameters);
 
-      jwk.cryptoKey = cryptoKey;
+      const jsonWebKey = new OctetSequenceJsonWebKey(
+        cryptoKey.export({ format: 'jwk' }) as OctetSequenceJsonWebKeyParameters,
+      );
 
-      return jwk;
+      jsonWebKey.cryptoKey = cryptoKey;
+
+      return jsonWebKey;
     }
 
     default:

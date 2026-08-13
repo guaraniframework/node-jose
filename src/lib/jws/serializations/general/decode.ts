@@ -84,7 +84,7 @@ export async function decode(token: GeneralJsonWebSignatureToken): Promise<Gener
   return parameters;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function isValidGeneralJsonWebSignatureToken(token: GeneralJsonWebSignatureToken): boolean {
   if ('payload' in token && !isNonEmptyString(token.payload)) {
     return false;

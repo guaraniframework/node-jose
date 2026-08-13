@@ -10,7 +10,7 @@ export interface GeneralJsonWebEncryptionDeserializationOptionsRecipient {
   /**
    * JSON Web Key.
    */
-  readonly jwk?: JsonWebKey;
+  readonly jsonWebKey?: JsonWebKey;
 
   /**
    * Expected JSON Web Encryption Key Management Algorithms.

@@ -16,6 +16,7 @@ const invalidTokens: any[] = [undefined, null, true, 1, 1.2, 1n, Symbol('a'), Bu
 
 const invalidTokenFormats: any[] = [
   {},
+  { protected: undefined },
   { protected: null },
   { protected: true },
   { protected: 1 },
@@ -28,6 +29,7 @@ const invalidTokenFormats: any[] = [
   { protected: {} },
   { protected: [] },
   { protected: '' },
+  { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: undefined },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: null },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: true },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: 1 },
@@ -39,6 +41,7 @@ const invalidTokenFormats: any[] = [
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: Buffer.alloc(1) },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: () => 1 },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', unprotected: [] },
+  { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: undefined },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: null },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: true },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: 1 },
@@ -50,6 +53,7 @@ const invalidTokenFormats: any[] = [
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: Buffer.alloc(1) },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: () => 1 },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', header: [] },
+  { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: undefined },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: null },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: true },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: 1 },
@@ -62,6 +66,11 @@ const invalidTokenFormats: any[] = [
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: {} },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: [] },
   { protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0', encrypted_key: '' },
+  {
+    protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
+    aad: undefined,
+  },
   {
     protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
@@ -121,6 +130,12 @@ const invalidTokenFormats: any[] = [
     protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
     aad: '',
+  },
+  {
+    protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
+    aad: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    iv: undefined,
   },
   {
     protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
@@ -193,6 +208,13 @@ const invalidTokenFormats: any[] = [
     encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
     aad: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     iv: '',
+  },
+  {
+    protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
+    aad: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    iv: 'AxY8DCtDaGlsbGljb3RoZQ',
+    tag: undefined,
   },
   {
     protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
@@ -277,6 +299,14 @@ const invalidTokenFormats: any[] = [
     aad: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     iv: 'AxY8DCtDaGlsbGljb3RoZQ',
     tag: '',
+  },
+  {
+    protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    encrypted_key: '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ',
+    aad: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
+    iv: 'AxY8DCtDaGlsbGljb3RoZQ',
+    tag: 'pf7CC-iGb8R2ZstoWHErWw',
+    ciphertext: undefined,
   },
   {
     protected: 'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
@@ -393,7 +423,7 @@ const repeatedJoseHeaderParameters: Partial<JsonWebEncryptionHeaderParameters>[]
 ];
 
 describe('decode()', () => {
-  const missingEkToken: FlattenedJsonWebEncryptionToken = {
+  const missingEncryptedKeyToken: FlattenedJsonWebEncryptionToken = {
     protected: 'eyJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     unprotected: { jku: 'https://server.example.com/keys.jwks' },
     header: { alg: 'A128KW', kid: '7' },
@@ -1017,13 +1047,13 @@ describe('decode()', () => {
   const compressedCiphertext = Buffer.from('7_74Yt9JQPazdQVzwCiocFWXSAtgczzDQVUY9WXJ7KA', 'base64url');
   const additionalAuthenticatedData = Buffer.from('YWRkaXRpb25hbF9hdXRoZW50aWNhdGVkX2RhdGE', 'base64url');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
 
   beforeEach(() => {
     https.get = jest.fn().mockImplementation((_, cb) => {
       const stream = new Stream();
       cb(stream);
-      stream.emit('data', jsonStringify({ keys: [jwk.parameters] }));
+      stream.emit('data', jsonStringify({ keys: [jsonWebKey.parameters] }));
       stream.emit('end');
     });
   });
@@ -1823,7 +1853,7 @@ describe('decode()', () => {
   });
 
   it('should return the Flattened JSON Web Encryption Parameters from a Token without an Encrypted Key.', async () => {
-    await expect(decode(missingEkToken)).resolves.toStrictEqual<FlattenedJsonWebEncryptionParameters>({
+    await expect(decode(missingEncryptedKeyToken)).resolves.toStrictEqual<FlattenedJsonWebEncryptionParameters>({
       protectedHeader: encHeader,
       unprotectedHeader: jkuHeader,
       recipientUnprotectedHeader: algKidHeader,

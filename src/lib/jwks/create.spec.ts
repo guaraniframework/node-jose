@@ -3,10 +3,10 @@ import { Buffer } from 'buffer';
 import { InvalidJsonWebKeySetError } from '../errors/invalid-jsonwebkeyset.error';
 import { EllipticCurveJsonWebKeyParameters } from '../jwa/jwk/ec/elliptic-curve-jsonwebkey.parameters';
 import { OctetKeyPairJsonWebKeyParameters } from '../jwa/jwk/okp/octet-key-pair-jsonwebkey.parameters';
-import { createJsonWebKey } from '../jwk/create-jsonwebkey';
+import { jwk } from '../jwk';
 import { JsonWebKey } from '../jwk/jsonwebkey';
 import { JsonWebKeyParameters } from '../jwk/jsonwebkey.parameters';
-import { createJsonWebKeySet } from './create-jsonwebkeyset';
+import { create } from './create';
 import { JsonWebKeySet } from './jsonwebkeyset';
 import { JsonWebKeySetParameters } from './jsonwebkeyset.parameters';
 
@@ -96,31 +96,28 @@ const publicOctetKeyPairParameters: OctetKeyPairJsonWebKeyParameters = {
   x: 'aNoALKSUE1UsotuZvHUj1HEGqhpzLtsSTLmkBITDMAk',
 };
 
-describe('createJsonWebKeySet()', () => {
+describe('create()', () => {
   let duplicateKeyIdentifiers: JsonWebKey[][];
 
   beforeAll(async () => {
     duplicateKeyIdentifiers = [
       [
-        await createJsonWebKey({ ...publicEllipticCurveParameters, kid: 'key-id' }),
-        await createJsonWebKey({ ...publicOctetKeyPairParameters, kid: 'key-id' }),
+        await jwk.create({ ...publicEllipticCurveParameters, kid: 'key-id' }),
+        await jwk.create({ ...publicOctetKeyPairParameters, kid: 'key-id' }),
       ],
-      [await createJsonWebKey(publicEllipticCurveParameters), await createJsonWebKey(publicEllipticCurveParameters)],
+      [await jwk.create(publicEllipticCurveParameters), await jwk.create(publicEllipticCurveParameters)],
     ];
   });
 
   describe('constructor', () => {
     it.each(invalidKeys)('should throw when the provided JSON Web Keys is invalid.', async (keys) => {
-      await expect(createJsonWebKeySet(keys)).rejects.toThrowWithMessage(
-        TypeError,
-        'The provided JSON Web Keys is invalid.',
-      );
+      await expect(create(keys)).rejects.toThrowWithMessage(TypeError, 'The provided JSON Web Keys is invalid.');
     });
 
     it('should throw when the provided JSON Web Keys have duplicate Keys or Identifiers.', () => {
       duplicateKeyIdentifiers.forEach(
         async (keys) =>
-          await expect(createJsonWebKeySet(keys)).rejects.toThrowWithMessage(
+          await expect(create(keys)).rejects.toThrowWithMessage(
             InvalidJsonWebKeySetError,
             'The use of duplicate JSON Web Keys is forbidden.',
           ),
@@ -130,7 +127,7 @@ describe('createJsonWebKeySet()', () => {
     it.each(invalidParameters)(
       'should throw when the provided JSON Web Key Set Parameters is invalid.',
       async (parameters) => {
-        await expect(createJsonWebKeySet(parameters)).rejects.toThrowWithMessage(
+        await expect(create(parameters)).rejects.toThrowWithMessage(
           TypeError,
           'The provided JSON Web Key Set Parameters is invalid.',
         );
@@ -140,7 +137,7 @@ describe('createJsonWebKeySet()', () => {
     it.each(invalidJsonWebKeySetParameters)(
       'should throw when the provided JSON Web Key Set Parameter "keys" is invalid.',
       async (keys) => {
-        await expect(createJsonWebKeySet({ keys })).rejects.toThrowWithMessage(
+        await expect(create({ keys })).rejects.toThrowWithMessage(
           InvalidJsonWebKeySetError,
           'Invalid JSON Web Key Set Parameter "keys".',
         );
@@ -150,7 +147,7 @@ describe('createJsonWebKeySet()', () => {
     it('should throw when the provided JSON Web Key Set have duplicate Keys or Identifiers.', () => {
       duplicateKeyIdentifiers.forEach(
         async (keys) =>
-          await expect(createJsonWebKeySet({ keys: keys.map((key) => key.parameters) })).rejects.toThrowWithMessage(
+          await expect(create({ keys: keys.map((key) => key.parameters) })).rejects.toThrowWithMessage(
             InvalidJsonWebKeySetError,
             'Invalid JSON Web Key Set Parameter "keys".',
           ),
@@ -158,35 +155,35 @@ describe('createJsonWebKeySet()', () => {
     });
 
     it('should return a JSON Web Key Set from the provided JSON Web Keys.', async () => {
-      let jwkSet!: JsonWebKeySet;
+      let jsonWebKeySet!: JsonWebKeySet;
 
       const keys: JsonWebKey[] = [
-        await createJsonWebKey(publicEllipticCurveParameters),
-        await createJsonWebKey(publicOctetKeyPairParameters),
+        await jwk.create(publicEllipticCurveParameters),
+        await jwk.create(publicOctetKeyPairParameters),
       ];
 
-      await expect(async () => (jwkSet = await createJsonWebKeySet(keys))).resolves.not.toThrow();
+      await expect(async () => (jsonWebKeySet = await create(keys))).resolves.not.toThrow();
 
-      expect(jwkSet.keys).toBeArrayOfSize(2);
+      expect(jsonWebKeySet.keys).toBeArrayOfSize(2);
 
-      jwkSet.keys.forEach((jwk, i) => {
+      jsonWebKeySet.keys.forEach((jwk, i) => {
         expect(jwk).toBeInstanceOf(JsonWebKey);
         expect(jwk.parameters).toStrictEqual<JsonWebKeyParameters>(keys[i]!.parameters);
       });
     });
 
     it('should return a JSON Web Key Set from the provided JSON Web Key Set Parameters.', async () => {
-      let jwkSet!: JsonWebKeySet;
+      let jsonWebKeySet!: JsonWebKeySet;
 
       const parameters: JsonWebKeySetParameters = {
         keys: [publicEllipticCurveParameters, publicOctetKeyPairParameters],
       };
 
-      await expect(async () => (jwkSet = await createJsonWebKeySet(parameters))).resolves.not.toThrow();
+      await expect(async () => (jsonWebKeySet = await create(parameters))).resolves.not.toThrow();
 
-      expect(jwkSet.keys).toBeArrayOfSize(2);
+      expect(jsonWebKeySet.keys).toBeArrayOfSize(2);
 
-      jwkSet.keys.forEach((jwk, i) => {
+      jsonWebKeySet.keys.forEach((jwk, i) => {
         expect(jwk).toBeInstanceOf(JsonWebKey);
         expect(jwk.parameters).toStrictEqual<JsonWebKeyParameters>(parameters.keys[i]!);
       });

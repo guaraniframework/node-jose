@@ -7,7 +7,7 @@ export interface CompactJsonWebSignatureSerializationOptions {
   /**
    * JSON Web Key.
    */
-  readonly jwk?: JsonWebKey | null;
+  readonly jsonWebKey?: JsonWebKey | null;
 
   /**
    * Detached Payload.

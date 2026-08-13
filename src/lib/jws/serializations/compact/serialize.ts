@@ -32,12 +32,11 @@ export async function serialize(
 
   const header = await createJsonWebSignatureHeader(protectedHeader);
 
-  const { detached, jwk } = options;
   const { digitalSignatureBackend, parameters } = header;
 
-  const jsonWebKey = jwk ?? header.jsonWebKey!;
+  const jsonWebKey = options.jsonWebKey ?? header.jsonWebKey!;
 
-  if (parameters.b64 === false && payload.includes(0x2e) && detached !== true) {
+  if (parameters.b64 === false && payload.includes(0x2e) && options.detached !== true) {
     throw new InvalidJsonWebSignatureError('The provided Unencoded Payload cannot be serialized.');
   }
 
@@ -52,10 +51,10 @@ export async function serialize(
   const signature = await digitalSignatureBackend.sign(message, jsonWebKey);
   const encodedSignature = signature.toString('base64url');
 
-  return `${encodedProtectedHeader}.${detached ? '' : encodedPayload}.${encodedSignature}`;
+  return `${encodedProtectedHeader}.${options.detached ? '' : encodedPayload}.${encodedSignature}`;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validatePayload(payload: Buffer): void {
   if (!Buffer.isBuffer(payload) || payload.byteLength === 0) {
     throw new TypeError('The provided Payload is invalid.');
@@ -73,8 +72,8 @@ function validateOptions(options: CompactJsonWebSignatureSerializationOptions): 
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('jwk' in options && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if ('detached' in options && typeof options.detached !== 'boolean') {

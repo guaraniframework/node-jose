@@ -32,20 +32,20 @@ export abstract class JsonWebSignatureDigitalSignatureBackend {
    * Signs a Message using the provided JSON Web Key.
    *
    * @param message Message to be signed.
-   * @param jwk JSON Web Key used to sign the Message.
+   * @param jsonWebKey JSON Web Key used to sign the Message.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @returns Signature of the Message.
    */
-  public abstract sign(message: Buffer, jwk: JsonWebKey | null): Promise<Buffer>;
+  public abstract sign(message: Buffer, jsonWebKey: JsonWebKey | null): Promise<Buffer>;
 
   /**
    * Checks if the provided Signature and Message match based on the provided JSON Web Key.
    *
    * @param signature Signature to be verified.
    * @param message Message to be matched against the Signature.
-   * @param jwk JSON Web Key used to verify the Signature.
+   * @param jsonWebKey JSON Web Key used to verify the Signature.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @throws {InvalidJsonWebSignatureError} Failed to verify the provided JSON Web Signature.
    */
-  public abstract verify(signature: Buffer, message: Buffer, jwk: JsonWebKey | null): Promise<void>;
+  public abstract verify(signature: Buffer, message: Buffer, jsonWebKey: JsonWebKey | null): Promise<void>;
 }

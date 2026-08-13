@@ -31,14 +31,6 @@ export async function deserialize(
 ): Promise<CompactJsonWebEncryption> {
   validateOptions(options);
 
-  const {
-    detachedCiphertext,
-    expectedCompressionAlgorithms,
-    expectedContentEncryptionAlgorithms,
-    expectedKeyManagementAlgorithms,
-    jwk,
-  } = options;
-
   let {
     additionalAuthenticatedData,
     authenticationTag,
@@ -48,25 +40,28 @@ export async function deserialize(
     ciphertext,
   } = await decode(token);
 
-  validateDetachedCiphertext(ciphertext, detachedCiphertext);
+  validateDetachedCiphertext(ciphertext, options.detachedCiphertext);
 
-  if (jwk instanceof JsonWebKey) {
-    protectedHeader.jsonWebKey = jwk;
+  if (options.jsonWebKey instanceof JsonWebKey) {
+    protectedHeader.jsonWebKey = options.jsonWebKey;
   }
 
-  const { compressionBackend, contentEncryptionBackend, jsonWebKey, keyManagementBackend, parameters } =
-    protectedHeader;
+  const { compressionBackend, contentEncryptionBackend, keyManagementBackend, parameters } = protectedHeader;
 
   validateExpectedAlgorithms(
-    expectedKeyManagementAlgorithms,
-    expectedContentEncryptionAlgorithms,
-    expectedCompressionAlgorithms,
+    options.expectedKeyManagementAlgorithms,
+    options.expectedContentEncryptionAlgorithms,
+    options.expectedCompressionAlgorithms,
     parameters,
   );
 
-  ciphertext ??= detachedCiphertext!;
+  ciphertext ??= options.detachedCiphertext!;
 
-  const contentEncryptionKey = await keyManagementBackend.unwrap(encryptedKey, jsonWebKey!, protectedHeader);
+  const contentEncryptionKey = await keyManagementBackend.unwrap(
+    encryptedKey,
+    protectedHeader.jsonWebKey!,
+    protectedHeader,
+  );
 
   let plaintext = await contentEncryptionBackend.decrypt(
     ciphertext,
@@ -83,14 +78,14 @@ export async function deserialize(
   return { plaintext, protectedHeader };
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validateOptions(options: CompactJsonWebEncryptionDeserializationOptions): void {
   if (!isPlainObject(options)) {
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('jwk' in options && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if (

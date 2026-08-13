@@ -67,7 +67,7 @@ describe('getJsonWebKeyFromJoseHeader()', () => {
     ],
   };
 
-  const jwk: JsonWebKeyParameters = {
+  const jsonWebKeyParameters: JsonWebKeyParameters = {
     kty: 'RSA',
     n:
       'oZ9ANo0w0XDqLw29D7ZM_Qd8fR-6B_3l-MZ0CLikkfz71ivN28vm8hR4FIQJZAzR' +
@@ -90,7 +90,7 @@ describe('getJsonWebKeyFromJoseHeader()', () => {
     http.get = jest.fn().mockImplementation((_, callback) => {
       const stream = new Stream();
       callback(stream);
-      stream.emit('data', jsonStringify({ keys: [jwk] }));
+      stream.emit('data', jsonStringify({ keys: [jsonWebKeyParameters] }));
       stream.emit('end');
     });
 
@@ -100,23 +100,21 @@ describe('getJsonWebKeyFromJoseHeader()', () => {
   });
 
   it('should throw when the provided JOSE Header Parameter "kid" does not match the provided JSON Web Key Parameter "jwk.kid".', async () => {
-    await expect(getJsonWebKeyFromJoseHeader({ ...parameters, jwk, kid: 'key-id' })).rejects.toThrowWithMessage(
-      InvalidJoseHeaderError,
-      'Mismatching JOSE Header and JSON Web Key Parameters "kid".',
-    );
+    await expect(
+      getJsonWebKeyFromJoseHeader({ ...parameters, jwk: jsonWebKeyParameters, kid: 'key-id' }),
+    ).rejects.toThrowWithMessage(InvalidJoseHeaderError, 'Mismatching JOSE Header and JSON Web Key Parameters "kid".');
   });
 
   it('should throw when the provided JOSE Header Parameter "jwk" is invalid.', async () => {
     await expect(
-      getJsonWebKeyFromJoseHeader({ ...parameters, jwk: { ...jwk, kty: 'oct' } }),
+      getJsonWebKeyFromJoseHeader({ ...parameters, jwk: { ...jsonWebKeyParameters, kty: 'oct' } }),
     ).rejects.toThrowWithMessage(InvalidJoseHeaderError, 'Invalid JOSE Header Parameter "jwk".');
   });
 
   it('should throw when the provided JOSE Header Parameter "alg" does not match the provided JSON Web Key Parameter "alg".', async () => {
-    await expect(getJsonWebKeyFromJoseHeader({ ...parameters, jwk, alg: 'HS256' })).rejects.toThrowWithMessage(
-      InvalidJoseHeaderError,
-      'Mismatching JOSE Header and JSON Web Key Parameters "alg".',
-    );
+    await expect(
+      getJsonWebKeyFromJoseHeader({ ...parameters, jwk: jsonWebKeyParameters, alg: 'HS256' }),
+    ).rejects.toThrowWithMessage(InvalidJoseHeaderError, 'Mismatching JOSE Header and JSON Web Key Parameters "alg".');
   });
 
   it('should return a JSON Web Key from the provided JOSE Header Parameter "jku".', async () => {
@@ -125,7 +123,7 @@ describe('getJsonWebKeyFromJoseHeader()', () => {
     http.get = jest.fn().mockImplementationOnce((_, callback) => {
       const stream = new Stream();
       callback(stream);
-      stream.emit('data', jsonStringify({ keys: [jwk] }));
+      stream.emit('data', jsonStringify({ keys: [jsonWebKeyParameters] }));
       stream.emit('end');
     });
 
@@ -134,17 +132,17 @@ describe('getJsonWebKeyFromJoseHeader()', () => {
     }).resolves.not.toThrow();
 
     expect(jsonWebKey).toBeInstanceOf(JsonWebKey);
-    expect(jsonWebKey!.parameters).toStrictEqual(jwk);
+    expect(jsonWebKey!.parameters).toStrictEqual(jsonWebKeyParameters);
   });
 
   it('should return a JSON Web Key from the provided JOSE Header Parameter "jwk".', async () => {
     let jsonWebKey!: JsonWebKey | null;
 
     await expect(async () => {
-      jsonWebKey = await getJsonWebKeyFromJoseHeader({ alg: 'RS256', jwk });
+      jsonWebKey = await getJsonWebKeyFromJoseHeader({ alg: 'RS256', jwk: jsonWebKeyParameters });
     }).resolves.not.toThrow();
 
     expect(jsonWebKey).toBeInstanceOf(JsonWebKey);
-    expect(jsonWebKey!.parameters).toStrictEqual(jwk);
+    expect(jsonWebKey!.parameters).toStrictEqual(jsonWebKeyParameters);
   });
 });

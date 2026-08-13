@@ -27,20 +27,19 @@ export async function deserialize(
 ): Promise<CompactJsonWebSignature> {
   validateOptions(options);
 
-  const { detachedPayload, expectedDigitalSignatureAlgorithms, jwk } = options;
   let { payload, protectedHeader, signature } = await decode(token);
 
-  validateDetachedPayload(payload, detachedPayload);
+  validateDetachedPayload(payload, options.detachedPayload);
 
-  if (jwk === null || jwk instanceof JsonWebKey) {
-    protectedHeader.jsonWebKey = jwk;
+  if (options.jsonWebKey === null || options.jsonWebKey instanceof JsonWebKey) {
+    protectedHeader.jsonWebKey = options.jsonWebKey;
   }
 
   const { digitalSignatureBackend, jsonWebKey, parameters } = protectedHeader;
 
-  validateExpectedAlgorithms(expectedDigitalSignatureAlgorithms, parameters);
+  validateExpectedAlgorithms(options.expectedDigitalSignatureAlgorithms, parameters);
 
-  payload ??= detachedPayload!;
+  payload ??= options.detachedPayload!;
 
   const encodedProtectedHeader = Buffer.from(jsonStringify(parameters), 'utf8').toString('base64url');
   const encodedPayload = payload.toString(parameters.b64 === false ? 'utf8' : 'base64url');
@@ -55,14 +54,14 @@ export async function deserialize(
   return { payload, protectedHeader };
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validateOptions(options: CompactJsonWebSignatureDeserializationOptions): void {
   if (!isPlainObject(options)) {
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('jwk' in options && options.jwk !== null && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && options.jsonWebKey !== null && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if (

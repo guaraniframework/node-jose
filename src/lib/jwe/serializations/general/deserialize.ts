@@ -65,23 +65,18 @@ export async function deserialize(
       (async () => {
         const { encryptedKey, header, recipientUnprotectedHeader } = recipients[i]!;
 
-        const {
-          expectedCompressionAlgorithms,
-          expectedContentEncryptionAlgorithms,
-          expectedKeyManagementAlgorithms,
-          jwk,
-        } = options.recipients?.[i] ?? {};
+        const recipientOptions = options.recipients?.[i] ?? {};
 
-        if (jwk instanceof JsonWebKey) {
-          header.jsonWebKey = jwk;
+        if (recipientOptions.jsonWebKey instanceof JsonWebKey) {
+          header.jsonWebKey = recipientOptions.jsonWebKey;
         }
 
         const { compressionBackend, contentEncryptionBackend, jsonWebKey, keyManagementBackend, parameters } = header;
 
         validateExpectedAlgorithms(
-          expectedKeyManagementAlgorithms,
-          expectedContentEncryptionAlgorithms,
-          expectedCompressionAlgorithms,
+          recipientOptions.expectedKeyManagementAlgorithms,
+          recipientOptions.expectedContentEncryptionAlgorithms,
+          recipientOptions.expectedCompressionAlgorithms,
           parameters,
         );
 
@@ -130,7 +125,7 @@ export async function deserialize(
   return jwe;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validateOptions(
   options: GeneralJsonWebEncryptionDeserializationOptions,
   recipients: GeneralJsonWebEncryptionParametersRecipient[],
@@ -156,8 +151,8 @@ function validateOptions(
     }
 
     options.recipients.forEach((recipientOptions) => {
-      if ('jwk' in recipientOptions && !(recipientOptions.jwk instanceof JsonWebKey)) {
-        throw new TypeError('The provided recipient option "jwk" is invalid.');
+      if ('jsonWebKey' in recipientOptions && !(recipientOptions.jsonWebKey instanceof JsonWebKey)) {
+        throw new TypeError('The provided recipient option "jsonWebKey" is invalid.');
       }
 
       if (

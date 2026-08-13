@@ -26,7 +26,7 @@ const invalidDeserializeOptions: any[] = [
   [],
 ];
 
-const invalidJwks: any[] = [
+const invalidJsonWebKeys: any[] = [
   undefined,
   null,
   true,
@@ -43,6 +43,7 @@ const invalidJwks: any[] = [
 ];
 
 const invalidExpectedAlgorithms: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -59,6 +60,7 @@ const invalidExpectedAlgorithms: any[] = [
 ];
 
 const invalidDetachedCiphertexts: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -75,7 +77,7 @@ const invalidDetachedCiphertexts: any[] = [
 const invalidTokens: any[] = [undefined, null, true, 1, 1.2, 1n, '', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
 
 describe('deserialize()', () => {
-  const wrongEkToken: FlattenedJsonWebEncryptionToken = {
+  const wrongEncryptedKeyToken: FlattenedJsonWebEncryptionToken = {
     protected: 'eyJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     unprotected: { jku: 'https://server.example.com/keys.jwks' },
     header: { alg: 'A128KW', kid: '7' },
@@ -86,7 +88,7 @@ describe('deserialize()', () => {
     tag: 'U0m_YmjN04DJvceFICbCVQ',
   };
 
-  const wrongAadToken: FlattenedJsonWebEncryptionToken = {
+  const wrongAdditionalAuthenticatedDataToken: FlattenedJsonWebEncryptionToken = {
     protected: 'eyJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     unprotected: { jku: 'https://server.example.com/keys.jwks' },
     header: { alg: 'A128KW', kid: '7' },
@@ -97,7 +99,7 @@ describe('deserialize()', () => {
     tag: 'U0m_YmjN04DJvceFICbCVQ',
   };
 
-  const wrongIvToken: FlattenedJsonWebEncryptionToken = {
+  const wrongInitializationVectorToken: FlattenedJsonWebEncryptionToken = {
     protected: 'eyJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     unprotected: { jku: 'https://server.example.com/keys.jwks' },
     header: { alg: 'A128KW', kid: '7' },
@@ -119,7 +121,7 @@ describe('deserialize()', () => {
     tag: 'U0m_YmjN04DJvceFICbCVQ',
   };
 
-  const wrongTagToken: FlattenedJsonWebEncryptionToken = {
+  const wrongAuthenticationTagToken: FlattenedJsonWebEncryptionToken = {
     protected: 'eyJlbmMiOiJBMTI4Q0JDLUhTMjU2In0',
     unprotected: { jku: 'https://server.example.com/keys.jwks' },
     header: { alg: 'A128KW', kid: '7' },
@@ -743,13 +745,13 @@ describe('deserialize()', () => {
   const ciphertext = Buffer.from('KDlTtXchhZTGufMYmOYGS4HffxPSUrfmqCHXaI9wOGY', 'base64url');
   const compressedCiphertext = Buffer.from('7_74Yt9JQPazdQVzwCiocFWXSAtgczzDQVUY9WXJ7KA', 'base64url');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
 
   beforeEach(() => {
     https.get = jest.fn().mockImplementation((_, cb) => {
       const stream = new Stream();
       cb(stream);
-      stream.emit('data', jsonStringify({ keys: [jwk.parameters] }));
+      stream.emit('data', jsonStringify({ keys: [jsonWebKey.parameters] }));
       stream.emit('end');
     });
   });
@@ -761,10 +763,10 @@ describe('deserialize()', () => {
     );
   });
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
-    await expect(deserialize(uncompressedProtectedAttachedTokenNoAad, { jwk })).rejects.toThrowWithMessage(
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
+    await expect(deserialize(uncompressedProtectedAttachedTokenNoAad, { jsonWebKey })).rejects.toThrowWithMessage(
       TypeError,
-      'The provided option "jwk" is invalid.',
+      'The provided option "jsonWebKey" is invalid.',
     );
   });
 
@@ -858,1018 +860,1070 @@ describe('deserialize()', () => {
   });
 
   it('should throw when the provided Encrypted Key fails to deserialize the provided Flattened JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongEkToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongEncryptedKeyToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Additional Authenticated Data fails to deserialize the provided Flattened JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongAadToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongAdditionalAuthenticatedDataToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Initialization Vector fails to deserialize the provided Flattened JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongIvToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongInitializationVectorToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Ciphertext fails to deserialize the provided Flattened JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongCiphertextToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongCiphertextToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Authentication Tag fails to deserialize the provided Flattened JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongTagToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongAuthenticationTagToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedProtectedAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedProtectedAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedUnprotectedAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedUnprotectedAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedRecipientAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedRecipientAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Unprotected Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedProtectedAndUnprotectedAttachedTokenNoAad, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedProtectedAndUnprotectedAttachedTokenNoAad, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedProtectedAndRecipientAttachedTokenNoAad, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedProtectedAndRecipientAttachedTokenNoAad, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected and Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedUnprotectedAndRecipientAttachedTokenNoAad, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedUnprotectedAndRecipientAttachedTokenNoAad, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected, Unprotected and Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedFullAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedFullAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedProtectedDetachedTokenNoAad, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedProtectedDetachedTokenNoAad, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedUnprotectedDetachedTokenNoAad, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedUnprotectedDetachedTokenNoAad, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedRecipientDetachedTokenNoAad, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedRecipientDetachedTokenNoAad, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Unprotected Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedProtectedAndUnprotectedDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(uncompressedProtectedAndUnprotectedDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: ciphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedProtectedAndRecipientDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(uncompressedProtectedAndRecipientDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: ciphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected and Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedUnprotectedAndRecipientDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(uncompressedUnprotectedAndRecipientDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: ciphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected, Unprotected and Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedFullDetachedTokenNoAad, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedFullDetachedTokenNoAad, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedProtectedAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedProtectedAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedUnprotectedAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedUnprotectedAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedRecipientAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedRecipientAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Unprotected Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(compressedProtectedAndUnprotectedAttachedTokenNoAad, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(compressedProtectedAndUnprotectedAttachedTokenNoAad, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(compressedProtectedAndRecipientAttachedTokenNoAad, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(compressedProtectedAndRecipientAttachedTokenNoAad, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected and Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(compressedUnprotectedAndRecipientAttachedTokenNoAad, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(compressedUnprotectedAndRecipientAttachedTokenNoAad, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected, Unprotected and Recipient Attached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedFullAttachedTokenNoAad, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedFullAttachedTokenNoAad, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedProtectedDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedProtectedDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedUnprotectedDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedUnprotectedDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedRecipientDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedRecipientDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Unprotected Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedProtectedAndUnprotectedDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedProtectedAndUnprotectedDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedProtectedAndRecipientDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedProtectedAndRecipientDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected and Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedUnprotectedAndRecipientDetachedTokenNoAad, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedUnprotectedAndRecipientDetachedTokenNoAad, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected, Unprotected and Recipient Detached Token with no Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedFullDetachedTokenNoAad, { jwk, detachedCiphertext: compressedCiphertext });
+      jsonWebEncryption = await deserialize(compressedFullDetachedTokenNoAad, {
+        jsonWebKey,
+        detachedCiphertext: compressedCiphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedProtectedAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedProtectedAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedUnprotectedAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedUnprotectedAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(uncompressedRecipientAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedRecipientAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Unprotected Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedProtectedAndUnprotectedAttachedToken, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedProtectedAndUnprotectedAttachedToken, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedProtectedAndRecipientAttachedToken, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedProtectedAndRecipientAttachedToken, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected and Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedUnprotectedAndRecipientAttachedToken, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedUnprotectedAndRecipientAttachedToken, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected, Unprotected and Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(async () => (jwe = await deserialize(uncompressedFullAttachedToken, { jwk }))).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(uncompressedFullAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedProtectedDetachedToken, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedProtectedDetachedToken, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedUnprotectedDetachedToken, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedUnprotectedDetachedToken, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedRecipientDetachedToken, { jwk, detachedCiphertext: ciphertext });
+      jsonWebEncryption = await deserialize(uncompressedRecipientDetachedToken, {
+        jsonWebKey,
+        detachedCiphertext: ciphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Unprotected Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedProtectedAndUnprotectedDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(uncompressedProtectedAndUnprotectedDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: ciphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected and Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedProtectedAndRecipientDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(uncompressedProtectedAndRecipientDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: ciphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Unprotected and Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(uncompressedUnprotectedAndRecipientDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(uncompressedUnprotectedAndRecipientDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: ciphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from an Uncompressed Protected, Unprotected and Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(uncompressedFullDetachedToken, { jwk, detachedCiphertext: ciphertext })),
+      async () =>
+        (jsonWebEncryption = await deserialize(uncompressedFullDetachedToken, {
+          jsonWebKey,
+          detachedCiphertext: ciphertext,
+        })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedProtectedAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedProtectedAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedUnprotectedAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedUnprotectedAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedRecipientAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedRecipientAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Unprotected Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(compressedProtectedAndUnprotectedAttachedToken, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(compressedProtectedAndUnprotectedAttachedToken, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(
-      async () => (jwe = await deserialize(compressedProtectedAndRecipientAttachedToken, { jwk })),
-    ).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedProtectedAndRecipientAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected and Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(compressedUnprotectedAndRecipientAttachedToken, { jwk })),
+      async () =>
+        (jsonWebEncryption = await deserialize(compressedUnprotectedAndRecipientAttachedToken, { jsonWebKey })),
     ).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected, Unprotected and Recipient Attached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
-    await expect(async () => (jwe = await deserialize(compressedFullAttachedToken, { jwk }))).resolves.not.toThrow();
+    await expect(async () => {
+      jsonWebEncryption = await deserialize(compressedFullAttachedToken, { jsonWebKey });
+    }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedProtectedDetachedToken, { jwk, detachedCiphertext: compressedCiphertext });
+      jsonWebEncryption = await deserialize(compressedProtectedDetachedToken, {
+        jsonWebKey,
+        detachedCiphertext: compressedCiphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedUnprotectedDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedUnprotectedDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedRecipientDetachedToken, { jwk, detachedCiphertext: compressedCiphertext });
+      jsonWebEncryption = await deserialize(compressedRecipientDetachedToken, {
+        jsonWebKey,
+        detachedCiphertext: compressedCiphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Unprotected Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedProtectedAndUnprotectedDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedProtectedAndUnprotectedDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
-    expect(jwe.recipientUnprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toBeUndefined();
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected and Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedProtectedAndRecipientDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedProtectedAndRecipientDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toBeUndefined();
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Unprotected and Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedUnprotectedAndRecipientDetachedToken, {
-        jwk,
+      jsonWebEncryption = await deserialize(compressedUnprotectedAndRecipientDetachedToken, {
+        jsonWebKey,
         detachedCiphertext: compressedCiphertext,
       });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toBeUndefined();
-    expect(jwe.unprotectedHeader).toStrictEqual(encHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toBeUndefined();
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipJkuKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 
   it('should return the deserialized Flattened JSON Web Encryption from a Compressed Protected, Unprotected and Recipient Detached Token with Additional Authenticated Data.', async () => {
-    let jwe!: FlattenedJsonWebEncryption;
+    let jsonWebEncryption!: FlattenedJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedFullDetachedToken, { jwk, detachedCiphertext: compressedCiphertext });
+      jsonWebEncryption = await deserialize(compressedFullDetachedToken, {
+        jsonWebKey,
+        detachedCiphertext: compressedCiphertext,
+      });
     }).resolves.not.toThrow();
 
-    expect(jwe.header).toBeInstanceOf(JsonWebEncryptionHeader);
-    expect(jwe.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
+    expect(jsonWebEncryption.header).toBeInstanceOf(JsonWebEncryptionHeader);
+    expect(jsonWebEncryption.header.parameters).toStrictEqual(algEncZipJkuKidHeader);
 
-    expect(jwe.protectedHeader).toStrictEqual(encHeader);
-    expect(jwe.unprotectedHeader).toStrictEqual(jkuHeader);
-    expect(jwe.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
+    expect(jsonWebEncryption.protectedHeader).toStrictEqual(encHeader);
+    expect(jsonWebEncryption.unprotectedHeader).toStrictEqual(jkuHeader);
+    expect(jsonWebEncryption.recipientUnprotectedHeader).toStrictEqual(algZipKidHeader);
 
-    expect(jwe.plaintext).toStrictEqual(plaintext);
+    expect(jsonWebEncryption.plaintext).toStrictEqual(plaintext);
   });
 });

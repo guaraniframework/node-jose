@@ -6,7 +6,7 @@ import { PublicKeyUse } from '../jwa/jwk/public-key-use.type';
 import { JsonWebKey } from './jsonwebkey';
 import { JsonWebKeyParameters } from './jsonwebkey.parameters';
 
-const invalidUses: any[] = [
+const invalidPublicKeyUses: any[] = [
   undefined,
   null,
   true,
@@ -23,7 +23,7 @@ const invalidUses: any[] = [
   'a',
 ];
 
-const invalidKeyOps: any[] = [
+const invalidKeyOperations: any[] = [
   undefined,
   null,
   true,
@@ -79,38 +79,7 @@ const invalidKeyOps: any[] = [
   ['unwrapKey', 'deriveKey'],
 ];
 
-const invalidAlgs: any[] = [
-  undefined,
-  null,
-  true,
-  1,
-  1.2,
-  1n,
-  Symbol('a'),
-  Buffer,
-  Buffer.alloc(1),
-  () => 1,
-  {},
-  [],
-  '',
-  'a',
-];
-const invalidKids: any[] = [
-  undefined,
-  null,
-  true,
-  1,
-  1.2,
-  1n,
-  Symbol('a'),
-  Buffer,
-  Buffer.alloc(1),
-  () => 1,
-  {},
-  [],
-  '',
-];
-const invalidX5Us: any[] = [
+const invalidDigitalSignatureAlgorithms: any[] = [
   undefined,
   null,
   true,
@@ -127,7 +96,40 @@ const invalidX5Us: any[] = [
   'a',
 ];
 
-const invalidX5Cs: any[] = [
+const invalidKeyIDs: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
+
+const invalidX509URLs: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+  'a',
+];
+
+const invalidX509Certificates: any[] = [
   undefined,
   null,
   true,
@@ -156,22 +158,7 @@ const invalidX5Cs: any[] = [
   [''],
 ];
 
-const invalidX5Ts: any[] = [
-  undefined,
-  null,
-  true,
-  1,
-  1.2,
-  1n,
-  Symbol('a'),
-  Buffer,
-  Buffer.alloc(1),
-  () => 1,
-  {},
-  [],
-  '',
-];
-const invalidX5TS256s: any[] = [
+const invalidX509Thumbprints: any[] = [
   undefined,
   null,
   true,
@@ -187,7 +174,23 @@ const invalidX5TS256s: any[] = [
   '',
 ];
 
-const invalidUseKeyOps: [PublicKeyUse, KeyOperation[]][] = [
+const invalidX509SHA256Thumbprints: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
+
+const invalidPublicKeyUsesAndKeyOperations: [PublicKeyUse, KeyOperation[]][] = [
   ['enc', ['sign']],
   ['enc', ['verify']],
   ['sig', ['decrypt']],
@@ -319,21 +322,24 @@ describe('JSON Web Key', () => {
   });
 
   describe('constructor', () => {
-    it.each(invalidUses)('should throw when the provided JSON Web Key Parameter "use" is invalid.', (use) => {
+    it.each(invalidPublicKeyUses)('should throw when the provided JSON Web Key Parameter "use" is invalid.', (use) => {
       expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, use }])).toThrowWithMessage(
         InvalidJsonWebKeyError,
         'Invalid JSON Web Key Parameter "use".',
       );
     });
 
-    it.each(invalidKeyOps)('should throw when the provided JSON Web Key Parameter "key_ops" is invalid.', (keyOps) => {
-      expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, key_ops: keyOps }])).toThrowWithMessage(
-        InvalidJsonWebKeyError,
-        'Invalid JSON Web Key Parameter "key_ops".',
-      );
-    });
+    it.each(invalidKeyOperations)(
+      'should throw when the provided JSON Web Key Parameter "key_ops" is invalid.',
+      (keyOps) => {
+        expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, key_ops: keyOps }])).toThrowWithMessage(
+          InvalidJsonWebKeyError,
+          'Invalid JSON Web Key Parameter "key_ops".',
+        );
+      },
+    );
 
-    it.each(invalidUseKeyOps)(
+    it.each(invalidPublicKeyUsesAndKeyOperations)(
       'should throw when there\'s an invalid combination of the JSON Web Key Parameters "use" and "key_ops".',
       (use, keyOps) => {
         expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, use, key_ops: keyOps }])).toThrowWithMessage(
@@ -343,21 +349,24 @@ describe('JSON Web Key', () => {
       },
     );
 
-    it.each(invalidAlgs)('should throw when the provided JSON Web Key Parameter "alg" is invalid.', (alg) => {
-      expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, alg }])).toThrowWithMessage(
-        InvalidJsonWebKeyError,
-        'Invalid JSON Web Key Parameter "alg".',
-      );
-    });
+    it.each(invalidDigitalSignatureAlgorithms)(
+      'should throw when the provided JSON Web Key Parameter "alg" is invalid.',
+      (alg) => {
+        expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, alg }])).toThrowWithMessage(
+          InvalidJsonWebKeyError,
+          'Invalid JSON Web Key Parameter "alg".',
+        );
+      },
+    );
 
-    it.each(invalidKids)('should throw when the provided JSON Web Key Parameter "kid" is invalid.', (kid) => {
+    it.each(invalidKeyIDs)('should throw when the provided JSON Web Key Parameter "kid" is invalid.', (kid) => {
       expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, kid }])).toThrowWithMessage(
         InvalidJsonWebKeyError,
         'Invalid JSON Web Key Parameter "kid".',
       );
     });
 
-    it.each(invalidX5Us)('should throw when the provided JSON Web Key Parameter "x5u" is invalid.', (x5u) => {
+    it.each(invalidX509URLs)('should throw when the provided JSON Web Key Parameter "x5u" is invalid.', (x5u) => {
       const { x5c, ...params } = parameters;
 
       expect(() => Reflect.construct(JsonWebKey, [{ ...params, x5u }])).toThrowWithMessage(
@@ -366,21 +375,27 @@ describe('JSON Web Key', () => {
       );
     });
 
-    it.each(invalidX5Cs)('should throw when the provided JSON Web Key Parameter "x5c" is invalid.', (x5c) => {
-      expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, x5c }])).toThrowWithMessage(
-        InvalidJsonWebKeyError,
-        'Invalid JSON Web Key Parameter "x5c".',
-      );
-    });
+    it.each(invalidX509Certificates)(
+      'should throw when the provided JSON Web Key Parameter "x5c" is invalid.',
+      (x5c) => {
+        expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, x5c }])).toThrowWithMessage(
+          InvalidJsonWebKeyError,
+          'Invalid JSON Web Key Parameter "x5c".',
+        );
+      },
+    );
 
-    it.each(invalidX5Ts)('should throw when the provided JSON Web Key Parameter "x5t" is invalid.', (x5t) => {
-      expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, x5t }])).toThrowWithMessage(
-        InvalidJsonWebKeyError,
-        'Invalid JSON Web Key Parameter "x5t".',
-      );
-    });
+    it.each(invalidX509Thumbprints)(
+      'should throw when the provided JSON Web Key Parameter "x5t" is invalid.',
+      (x5t) => {
+        expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, x5t }])).toThrowWithMessage(
+          InvalidJsonWebKeyError,
+          'Invalid JSON Web Key Parameter "x5t".',
+        );
+      },
+    );
 
-    it.each(invalidX5TS256s)(
+    it.each(invalidX509SHA256Thumbprints)(
       'should throw when the provided JSON Web Key Parameter "x5t#S256" is invalid.',
       (x5tS256) => {
         expect(() => Reflect.construct(JsonWebKey, [{ ...parameters, 'x5t#S256': x5tS256 }])).toThrowWithMessage(
@@ -416,11 +431,11 @@ describe('JSON Web Key', () => {
     });
 
     it('should return a JSON Web Key.', () => {
-      let jwk!: JsonWebKey;
+      let jsonWebKey!: JsonWebKey;
 
-      expect(() => (jwk = Reflect.construct(JsonWebKey, [parameters]))).not.toThrow();
+      expect(() => (jsonWebKey = Reflect.construct(JsonWebKey, [parameters]))).not.toThrow();
 
-      expect(jwk.parameters).toStrictEqual(parameters);
+      expect(jsonWebKey.parameters).toStrictEqual(parameters);
     });
   });
 

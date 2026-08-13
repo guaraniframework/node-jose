@@ -83,7 +83,7 @@ export async function decode(token: GeneralJsonWebEncryptionToken): Promise<Gene
   }
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function isValidGeneralJsonWebEncryptionToken(token: GeneralJsonWebEncryptionToken): boolean {
   if (!isNonEmptyString(token.iv)) {
     return false;

@@ -6,7 +6,7 @@ import { GenerateOctetKeyPairJsonWebKeyOptions } from './generate-octet-key-pair
 import { OctetKeyPairJsonWebKey } from './octet-key-pair.jsonwebkey';
 import { OctetKeyPairJsonWebKeyParameters } from './octet-key-pair-jsonwebkey.parameters';
 
-const invalidCrvs: any[] = [
+const invalidCurves: any[] = [
   undefined,
   null,
   true,
@@ -61,7 +61,7 @@ describe('Octet Key Pair JSON Web Key', () => {
   });
 
   describe('constructor', () => {
-    it.each(invalidCrvs)('should throw when the provided JSON Web Key Parameter "crv" is invalid.', (crv) => {
+    it.each(invalidCurves)('should throw when the provided JSON Web Key Parameter "crv" is invalid.', (crv) => {
       expect(() => new OctetKeyPairJsonWebKey({ ...publicParameters, crv })).toThrowWithMessage(
         InvalidJsonWebKeyError,
         'Invalid JSON Web Key Parameter "crv".',
@@ -83,25 +83,25 @@ describe('Octet Key Pair JSON Web Key', () => {
     });
 
     it('should return a Public Octet Key Pair JSON Web Key.', () => {
-      let jwk!: OctetKeyPairJsonWebKey;
+      let jsonWebKey!: OctetKeyPairJsonWebKey;
 
-      expect(() => (jwk = new OctetKeyPairJsonWebKey(publicParameters))).not.toThrow();
+      expect(() => (jsonWebKey = new OctetKeyPairJsonWebKey(publicParameters))).not.toThrow();
 
-      expect(jwk.parameters).toStrictEqual(publicParameters);
+      expect(jsonWebKey.parameters).toStrictEqual(publicParameters);
 
-      expect(jwk.cryptoKey).toBeInstanceOf(KeyObject);
-      expect(jwk.cryptoKey.export({ format: 'jwk' })).toStrictEqual(publicParameters);
+      expect(jsonWebKey.cryptoKey).toBeInstanceOf(KeyObject);
+      expect(jsonWebKey.cryptoKey.export({ format: 'jwk' })).toStrictEqual(publicParameters);
     });
 
     it('should return a Private Octet Key Pair JSON Web Key.', () => {
-      let jwk!: OctetKeyPairJsonWebKey;
+      let jsonWebKey!: OctetKeyPairJsonWebKey;
 
-      expect(() => (jwk = new OctetKeyPairJsonWebKey(privateParameters))).not.toThrow();
+      expect(() => (jsonWebKey = new OctetKeyPairJsonWebKey(privateParameters))).not.toThrow();
 
-      expect(jwk.parameters).toStrictEqual(privateParameters);
+      expect(jsonWebKey.parameters).toStrictEqual(privateParameters);
 
-      expect(jwk.cryptoKey).toBeInstanceOf(KeyObject);
-      expect(jwk.cryptoKey.export({ format: 'jwk' })).toStrictEqual(privateParameters);
+      expect(jsonWebKey.cryptoKey).toBeInstanceOf(KeyObject);
+      expect(jsonWebKey.cryptoKey.export({ format: 'jwk' })).toStrictEqual(privateParameters);
     });
   });
 
@@ -113,7 +113,7 @@ describe('Octet Key Pair JSON Web Key', () => {
       );
     });
 
-    it.each(invalidCrvs)('should throw when the provided Curve is invalid.', async (curve) => {
+    it.each(invalidCurves)('should throw when the provided Curve is invalid.', async (curve) => {
       await expect(OctetKeyPairJsonWebKey.generate({ curve })).rejects.toThrowWithMessage(
         TypeError,
         'The provided Curve is invalid.',
@@ -137,66 +137,70 @@ describe('Octet Key Pair JSON Web Key', () => {
 
   describe('getThumbprint()', () => {
     it('should return the Thumbprint of the Public JSON Web Key.', () => {
-      const jwk = new OctetKeyPairJsonWebKey(publicParameters);
+      const jsonWebKey = new OctetKeyPairJsonWebKey(publicParameters);
       const createHashSpy = jest.spyOn(crypto, 'createHash');
 
-      expect(jwk.getThumbprint().toString('base64url')).toStrictEqual('FMCIgXO9kw0AgfBekvZMOJNulldoS-m3iRokV_t4r8g');
+      expect(jsonWebKey.getThumbprint().toString('base64url')).toStrictEqual(
+        'FMCIgXO9kw0AgfBekvZMOJNulldoS-m3iRokV_t4r8g',
+      );
       expect(createHashSpy).toHaveBeenCalledOnce();
     });
 
     it('should return the Thumbprint of the Private JSON Web Key.', () => {
-      const jwk = new OctetKeyPairJsonWebKey(privateParameters);
+      const jsonWebKey = new OctetKeyPairJsonWebKey(privateParameters);
       const createHashSpy = jest.spyOn(crypto, 'createHash');
 
-      expect(jwk.getThumbprint().toString('base64url')).toStrictEqual('FMCIgXO9kw0AgfBekvZMOJNulldoS-m3iRokV_t4r8g');
+      expect(jsonWebKey.getThumbprint().toString('base64url')).toStrictEqual(
+        'FMCIgXO9kw0AgfBekvZMOJNulldoS-m3iRokV_t4r8g',
+      );
       expect(createHashSpy).toHaveBeenCalledOnce();
     });
   });
 
   describe('getThumbprintURI()', () => {
     it('should return the Thumbprint of the Public JSON Web Key.', () => {
-      const jwk = new OctetKeyPairJsonWebKey(publicParameters);
+      const jsonWebKey = new OctetKeyPairJsonWebKey(publicParameters);
 
-      expect(jwk.getThumbprintURI()).toStrictEqual(
+      expect(jsonWebKey.getThumbprintURI()).toStrictEqual(
         'urn:ietf:params:oauth:jwk-thumbprint:sha-256:FMCIgXO9kw0AgfBekvZMOJNulldoS-m3iRokV_t4r8g',
       );
     });
 
     it('should return the Thumbprint of the Private JSON Web Key.', () => {
-      const jwk = new OctetKeyPairJsonWebKey(privateParameters);
+      const jsonWebKey = new OctetKeyPairJsonWebKey(privateParameters);
 
-      expect(jwk.getThumbprintURI()).toStrictEqual(
+      expect(jsonWebKey.getThumbprintURI()).toStrictEqual(
         'urn:ietf:params:oauth:jwk-thumbprint:sha-256:FMCIgXO9kw0AgfBekvZMOJNulldoS-m3iRokV_t4r8g',
       );
     });
   });
 
   describe('toJSON()', () => {
-    const publicJwk = new OctetKeyPairJsonWebKey(publicParameters);
-    const privateJwk = new OctetKeyPairJsonWebKey(privateParameters);
+    const publicJsonWebKey = new OctetKeyPairJsonWebKey(publicParameters);
+    const privateJsonWebKey = new OctetKeyPairJsonWebKey(privateParameters);
 
     it('should return the Public JSON Web Key Parameters of the Public Key when exportPrivate is undefined.', () => {
-      expect(publicJwk.toJSON()).toStrictEqual(publicParameters);
+      expect(publicJsonWebKey.toJSON()).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Public Key when exportPrivate is false.', () => {
-      expect(publicJwk.toJSON(false)).toStrictEqual(publicParameters);
+      expect(publicJsonWebKey.toJSON(false)).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Public Key when exportPrivate is true.', () => {
-      expect(publicJwk.toJSON(true)).toStrictEqual(publicParameters);
+      expect(publicJsonWebKey.toJSON(true)).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Private Key when exportPrivate is undefined.', () => {
-      expect(privateJwk.toJSON()).toStrictEqual(publicParameters);
+      expect(privateJsonWebKey.toJSON()).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Private Key when exportPrivate is false.', () => {
-      expect(privateJwk.toJSON(false)).toStrictEqual(publicParameters);
+      expect(privateJsonWebKey.toJSON(false)).toStrictEqual(publicParameters);
     });
 
     it('should return the Private JSON Web Key Parameters of the Private Key when exportPrivate is true.', () => {
-      expect(privateJwk.toJSON(true)).toStrictEqual(privateParameters);
+      expect(privateJsonWebKey.toJSON(true)).toStrictEqual(privateParameters);
     });
   });
 });

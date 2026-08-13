@@ -8,7 +8,7 @@ export interface GeneralJsonWebSignatureDeserializationOptionsSignature {
   /**
    * JSON Web Key.
    */
-  readonly jwk?: JsonWebKey | null;
+  readonly jsonWebKey?: JsonWebKey | null;
 
   /**
    * Expected JSON Web Signature Digital Signature Algorithms.

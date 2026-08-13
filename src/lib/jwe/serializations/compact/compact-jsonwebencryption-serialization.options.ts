@@ -7,7 +7,7 @@ export interface CompactJsonWebEncryptionSerializationOptions {
   /**
    * JSON Web Key.
    */
-  readonly jwk?: JsonWebKey;
+  readonly jsonWebKey?: JsonWebKey;
 
   /**
    * Detached Ciphertext.

@@ -42,13 +42,13 @@ export class HMACJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatur
    * Signs a Message using the provided JSON Web Key.
    *
    * @param message Message to be signed.
-   * @param jwk JSON Web Key used to sign the Message.
+   * @param jsonWebKey JSON Web Key used to sign the Message.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @returns Signature of the Message.
    */
-  public async sign(message: Buffer, jwk: OctetSequenceJsonWebKey): Promise<Buffer> {
-    this.validateJsonWebKey(jwk);
-    return createHmac(this.hash, jwk.cryptoKey).update(message).digest();
+  public async sign(message: Buffer, jsonWebKey: OctetSequenceJsonWebKey): Promise<Buffer> {
+    this.validateJsonWebKey(jsonWebKey);
+    return createHmac(this.hash, jsonWebKey.cryptoKey).update(message).digest();
   }
 
   /**
@@ -56,14 +56,14 @@ export class HMACJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatur
    *
    * @param signature Signature to be verified.
    * @param message Message to be matched against the Signature.
-   * @param jwk JSON Web Key used to verify the Signature.
+   * @param jsonWebKey JSON Web Key used to verify the Signature.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @throws {InvalidJsonWebSignatureError} Failed to verify the provided JSON Web Signature.
    */
-  public async verify(signature: Buffer, message: Buffer, jwk: OctetSequenceJsonWebKey): Promise<void> {
-    this.validateJsonWebKey(jwk);
+  public async verify(signature: Buffer, message: Buffer, jsonWebKey: OctetSequenceJsonWebKey): Promise<void> {
+    this.validateJsonWebKey(jsonWebKey);
 
-    const expectedSignature = await this.sign(message, jwk);
+    const expectedSignature = await this.sign(message, jsonWebKey);
 
     if (signature.byteLength !== expectedSignature.byteLength || !timingSafeEqual(signature, expectedSignature)) {
       throw new InvalidJsonWebSignatureError('The provided JSON Web Signature is invalid.');
@@ -73,19 +73,22 @@ export class HMACJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatur
   /**
    * Checks if the provided JSON Web Key can be used.
    *
-   * @param jwk JSON Web Key to be checked.
+   * @param jsonWebKey JSON Web Key to be checked.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    */
-  private validateJsonWebKey(jwk: OctetSequenceJsonWebKey): void {
-    if (!(jwk instanceof JsonWebKey) || ('alg' in jwk.parameters && jwk.parameters.alg !== this.algorithm)) {
+  private validateJsonWebKey(jsonWebKey: OctetSequenceJsonWebKey): void {
+    if (
+      !(jsonWebKey instanceof JsonWebKey) ||
+      ('alg' in jsonWebKey.parameters && jsonWebKey.parameters.alg !== this.algorithm)
+    ) {
       throw new InvalidJsonWebKeyError('The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.');
     }
 
-    if (jwk.parameters.kty !== 'oct') {
+    if (jsonWebKey.parameters.kty !== 'oct') {
       throw new InvalidJsonWebKeyError('The JSON Web Signature Algorithm only accepts "oct" JSON Web Keys.');
     }
 
-    if (Buffer.byteLength(jwk.parameters.k, 'base64url') < this.keySize) {
+    if (Buffer.byteLength(jsonWebKey.parameters.k, 'base64url') < this.keySize) {
       throw new InvalidJsonWebKeyError(`The JSON Web Key Parameter "k" must be at least ${this.keySize} bytes.`);
     }
   }

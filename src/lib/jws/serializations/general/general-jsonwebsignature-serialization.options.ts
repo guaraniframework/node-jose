@@ -7,7 +7,7 @@ export interface GeneralJsonWebSignatureSerializationOptions {
   /**
    * JSON Web Keys.
    */
-  readonly jwks?: (JsonWebKey | null)[];
+  readonly jsonWebKeys?: (JsonWebKey | null)[];
 
   /**
    * Detached Payload.

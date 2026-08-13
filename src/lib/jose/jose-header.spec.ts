@@ -5,12 +5,73 @@ import { JsonWebKeyParameters } from '../jwk/jsonwebkey.parameters';
 import { JoseHeader } from './jose-header';
 import { JoseHeaderParameters } from './jose-header.parameters';
 
-const invalidJkus: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], '', 'a'];
-const invalidJwks: any[] = [null, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
-const invalidKids: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], ''];
-const invalidX5Us: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], '', 'a'];
+const invalidJsonWebKeyURLs: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+  'a',
+];
 
-const invalidX5Cs: any[] = [
+const invalidJsonWebKeys: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  [],
+];
+
+const invalidKeyIDs: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
+
+const invalidX509URLs: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+  'a',
+];
+
+const invalidX509Certificates: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -38,12 +99,72 @@ const invalidX5Cs: any[] = [
   [''],
 ];
 
-const invalidX5Ts: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], ''];
-const invalidX5TS256s: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], ''];
-const invalidTyps: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], ''];
-const invalidCtys: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], ''];
+const invalidX509Thumbprints: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
 
-const invalidCrits: any[] = [
+const invalidX509SHA256Thumbprints: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
+
+const invalidTypes: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
+
+const invalidContentTypes: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  '',
+];
+
+const invalidCriticals: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -145,7 +266,7 @@ describe('JOSE Header', () => {
     ],
   };
 
-  const jwk: JsonWebKeyParameters = {
+  const jsonWebKeyParameters: JsonWebKeyParameters = {
     kty: 'RSA',
     n:
       'oZ9ANo0w0XDqLw29D7ZM_Qd8fR-6B_3l-MZ0CLikkfz71ivN28vm8hR4FIQJZAzR' +
@@ -165,14 +286,14 @@ describe('JOSE Header', () => {
   });
 
   describe('constructor', () => {
-    it.each(invalidJkus)('should throw when the provided JOSE Header Parameter "jku" is invalid.', (jku) => {
+    it.each(invalidJsonWebKeyURLs)('should throw when the provided JOSE Header Parameter "jku" is invalid.', (jku) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, jku }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "jku".',
       );
     });
 
-    it.each(invalidJwks)('should throw when the provided JOSE Header Parameter "jwk" is invalid.', (jwk) => {
+    it.each(invalidJsonWebKeys)('should throw when the provided JOSE Header Parameter "jwk" is invalid.', (jwk) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, jwk }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "jwk".',
@@ -181,39 +302,42 @@ describe('JOSE Header', () => {
 
     it('should throw when providing both "jku" and "jwk" JOSE Header Parameters.', () => {
       expect(() =>
-        Reflect.construct(JoseHeader, [{ ...parameters, jku: 'http://jku-url.com', jwk }]),
+        Reflect.construct(JoseHeader, [{ ...parameters, jku: 'http://jku-url.com', jwk: jsonWebKeyParameters }]),
       ).toThrowWithMessage(InvalidJoseHeaderError, 'Cannot have both "jku" and "jwk" JOSE Header Parameters.');
     });
 
-    it.each(invalidKids)('should throw when the provided JOSE Header Parameter "kid" is invalid.', (kid) => {
+    it.each(invalidKeyIDs)('should throw when the provided JOSE Header Parameter "kid" is invalid.', (kid) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, kid }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "kid".',
       );
     });
 
-    it.each(invalidX5Us)('should throw when the provided JOSE Header Parameter "x5u" is invalid.', (x5u) => {
+    it.each(invalidX509URLs)('should throw when the provided JOSE Header Parameter "x5u" is invalid.', (x5u) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, x5u }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "x5u".',
       );
     });
 
-    it.each(invalidX5Cs)('should throw when the provided JOSE Header Parameter "x5c" is invalid.', (x5c) => {
-      expect(() => Reflect.construct(JoseHeader, [{ ...parameters, x5c }])).toThrowWithMessage(
-        InvalidJoseHeaderError,
-        'Invalid JOSE Header Parameter "x5c".',
-      );
-    });
+    it.each(invalidX509Certificates)(
+      'should throw when the provided JOSE Header Parameter "x5c" is invalid.',
+      (x5c) => {
+        expect(() => Reflect.construct(JoseHeader, [{ ...parameters, x5c }])).toThrowWithMessage(
+          InvalidJoseHeaderError,
+          'Invalid JOSE Header Parameter "x5c".',
+        );
+      },
+    );
 
-    it.each(invalidX5Ts)('should throw when the provided JOSE Header Parameter "x5t" is invalid.', (x5t) => {
+    it.each(invalidX509Thumbprints)('should throw when the provided JOSE Header Parameter "x5t" is invalid.', (x5t) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, x5t }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "x5t".',
       );
     });
 
-    it.each(invalidX5TS256s)(
+    it.each(invalidX509SHA256Thumbprints)(
       'should throw when the provided JOSE Header Parameter "x5t#S256" is invalid.',
       (x5tS256) => {
         expect(() => Reflect.construct(JoseHeader, [{ ...parameters, 'x5t#S256': x5tS256 }])).toThrowWithMessage(
@@ -244,21 +368,21 @@ describe('JOSE Header', () => {
       );
     });
 
-    it.each(invalidTyps)('should throw when the provided JOSE Header Parameter "typ" is invalid.', (typ) => {
+    it.each(invalidTypes)('should throw when the provided JOSE Header Parameter "typ" is invalid.', (typ) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, typ }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "typ".',
       );
     });
 
-    it.each(invalidCtys)('should throw when the provided JOSE Header Parameter "cty" is invalid.', (cty) => {
+    it.each(invalidContentTypes)('should throw when the provided JOSE Header Parameter "cty" is invalid.', (cty) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, cty }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "cty".',
       );
     });
 
-    it.each(invalidCrits)('should throw when the provided JOSE Header Parameter "crit" is invalid.', (crit) => {
+    it.each(invalidCriticals)('should throw when the provided JOSE Header Parameter "crit" is invalid.', (crit) => {
       expect(() => Reflect.construct(JoseHeader, [{ ...parameters, crit }])).toThrowWithMessage(
         InvalidJoseHeaderError,
         'Invalid JOSE Header Parameter "crit".',

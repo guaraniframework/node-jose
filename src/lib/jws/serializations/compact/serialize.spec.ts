@@ -38,7 +38,7 @@ const invalidProtectedHeaders: any[] = [
 
 const invalidSerializeOptions: any[] = [null, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
 
-const invalidJwks: any[] = [
+const invalidJsonWebKeys: any[] = [
   undefined,
   null,
   true,
@@ -94,7 +94,7 @@ describe('serialize()', () => {
   const unencodedProtectedHeader: JsonWebSignatureHeaderParameters = { alg: 'HS256', b64: false, crit: ['b64'] };
   const encodedProtectedHeader: JsonWebSignatureHeaderParameters = { alg: 'HS256' };
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'qDM80igvja4Tg_tNsEuWDhl2bMM6_NgJEldFhIEuwqQ' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'qDM80igvja4Tg_tNsEuWDhl2bMM6_NgJEldFhIEuwqQ' });
 
   it.each(invalidPayloads)('should throw when the provided Payload is invalid.', async (payload) => {
     await expect(serialize(payload, encodedProtectedHeader)).rejects.toThrowWithMessage(
@@ -120,10 +120,10 @@ describe('serialize()', () => {
     );
   });
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
-    await expect(serialize(payloadWithoutDot, encodedProtectedHeader, { jwk })).rejects.toThrowWithMessage(
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
+    await expect(serialize(payloadWithoutDot, encodedProtectedHeader, { jsonWebKey })).rejects.toThrowWithMessage(
       TypeError,
-      'The provided option "jwk" is invalid.',
+      'The provided option "jsonWebKey" is invalid.',
     );
   });
 
@@ -141,42 +141,42 @@ describe('serialize()', () => {
     );
 
     await expect(
-      serialize(payloadWithDot, unencodedProtectedHeader, { jwk, detached: false }),
+      serialize(payloadWithDot, unencodedProtectedHeader, { jsonWebKey, detached: false }),
     ).rejects.toThrowWithMessage(InvalidJsonWebSignatureError, 'The provided Unencoded Payload cannot be serialized.');
   });
 
   it('should serialize a Compact JSON Web Signature Attached Unencoded Token without a dot.', async () => {
-    await expect(serialize(payloadWithoutDot, unencodedProtectedHeader, { jwk })).resolves.toStrictEqual(
+    await expect(serialize(payloadWithoutDot, unencodedProtectedHeader, { jsonWebKey })).resolves.toStrictEqual(
       unencodedAttachedTokenWithoutDot,
     );
   });
 
   it('should serialize a Compact JSON Web Signature Detached Unencoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, unencodedProtectedHeader, { jwk, detached: true }),
+      serialize(payloadWithoutDot, unencodedProtectedHeader, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(unencodedDetachedTokenWithoutDot);
   });
 
   it('should serialize a Compact JSON Web Signature Detached Unencoded Token with a dot.', async () => {
-    const jwk = new OctetSequenceJsonWebKey({
+    const jsonWebKey = new OctetSequenceJsonWebKey({
       kty: 'oct',
       k: 'AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow',
     });
 
-    await expect(serialize(payloadWithDot, unencodedProtectedHeader, { jwk, detached: true })).resolves.toStrictEqual(
-      unencodedDetachedTokenWithDot,
-    );
+    await expect(
+      serialize(payloadWithDot, unencodedProtectedHeader, { jsonWebKey, detached: true }),
+    ).resolves.toStrictEqual(unencodedDetachedTokenWithDot);
   });
 
   it('should serialize a Compact JSON Web Signature Attached Encoded Token without a dot.', async () => {
-    await expect(serialize(payloadWithoutDot, encodedProtectedHeader, { jwk })).resolves.toStrictEqual(
+    await expect(serialize(payloadWithoutDot, encodedProtectedHeader, { jsonWebKey })).resolves.toStrictEqual(
       encodedAttachedToken,
     );
   });
 
   it('should serialize a Compact JSON Web Signature Detached Encoded Token without a dot.', async () => {
-    await expect(serialize(payloadWithoutDot, encodedProtectedHeader, { jwk, detached: true })).resolves.toStrictEqual(
-      encodedDetachedToken,
-    );
+    await expect(
+      serialize(payloadWithoutDot, encodedProtectedHeader, { jsonWebKey, detached: true }),
+    ).resolves.toStrictEqual(encodedDetachedToken);
   });
 });

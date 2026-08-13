@@ -34,12 +34,11 @@ export async function serialize(
   const header = await validateHeaders(headers);
   validateOptions(options);
 
-  const { detached, jwk } = options;
   const { digitalSignatureBackend, parameters } = header;
 
-  const jsonWebKey = jwk ?? header.jsonWebKey!;
+  const jsonWebKey = options.jsonWebKey ?? header.jsonWebKey!;
 
-  if (parameters.b64 === false && payload.includes(0x2e) && detached !== true) {
+  if (parameters.b64 === false && payload.includes(0x2e) && options.detached !== true) {
     throw new InvalidJsonWebSignatureError('The provided Unencoded Payload cannot be serialized.');
   }
 
@@ -67,14 +66,14 @@ export async function serialize(
     Reflect.set(token, 'protected', encodedProtectedHeader);
   }
 
-  if (detached !== true) {
+  if (options.detached !== true) {
     Reflect.set(token, 'payload', encodedPayload);
   }
 
   return token;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validatePayload(payload: Buffer): void {
   if (!Buffer.isBuffer(payload) || payload.byteLength === 0) {
     throw new TypeError('The provided Payload is invalid.');
@@ -129,8 +128,8 @@ function validateOptions(options: FlattenedJsonWebSignatureSerializationOptions)
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('jwk' in options && options.jwk !== null && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && options.jsonWebKey !== null && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if ('detached' in options && typeof options.detached !== 'boolean') {

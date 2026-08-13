@@ -1,7 +1,7 @@
 import { isPlainObject } from '@guarani/primitives';
 
 import { InvalidJsonWebKeySetError } from '../errors/invalid-jsonwebkeyset.error';
-import { createJsonWebKey } from '../jwk/create-jsonwebkey';
+import { jwk } from '../jwk';
 import { JsonWebKey } from '../jwk/jsonwebkey';
 import { JsonWebKeySet } from './jsonwebkeyset';
 import { JsonWebKeySetParameters } from './jsonwebkeyset.parameters';
@@ -14,7 +14,7 @@ import { JsonWebKeySetParameters } from './jsonwebkeyset.parameters';
  * @throws {InvalidJsonWebKeySetError} The provided JSON Web Key Set Parameters are invalid.
  * @returns JSON Web Key Set.
  */
-export async function createJsonWebKeySet(parameters: JsonWebKeySetParameters): Promise<JsonWebKeySet>;
+export async function create(parameters: JsonWebKeySetParameters): Promise<JsonWebKeySet>;
 
 /**
  * Creates a JSON Web Key Set based on the provided JSON Web Keys.
@@ -24,7 +24,7 @@ export async function createJsonWebKeySet(parameters: JsonWebKeySetParameters): 
  * @throws {InvalidJsonWebKeySetError} The provided JSON Web Keys contain duplicate entries.
  * @returns JSON Web Key Set.
  */
-export async function createJsonWebKeySet(keys: JsonWebKey[]): Promise<JsonWebKeySet>;
+export async function create(keys: JsonWebKey[]): Promise<JsonWebKeySet>;
 
 /**
  * Creates a JSON Web Key Set based on the provided JSON Web Key Set Parameters or JSON Web Keys.
@@ -35,9 +35,7 @@ export async function createJsonWebKeySet(keys: JsonWebKey[]): Promise<JsonWebKe
  * the provided JSON Web Keys contain duplicate entries.
  * @returns JSON Web Key Set.
  */
-export async function createJsonWebKeySet(
-  parametersOrKeys: JsonWebKeySetParameters | JsonWebKey[],
-): Promise<JsonWebKeySet> {
+export async function create(parametersOrKeys: JsonWebKeySetParameters | JsonWebKey[]): Promise<JsonWebKeySet> {
   const keys = Array.isArray(parametersOrKeys)
     ? validateJsonWebKeys(parametersOrKeys)
     : await validateJsonWebKeySetParameters(parametersOrKeys);
@@ -63,7 +61,7 @@ async function validateJsonWebKeySetParameters(parameters: JsonWebKeySetParamete
   }
 
   try {
-    const keys = await Promise.all(parameters.keys.map(createJsonWebKey));
+    const keys = await Promise.all(parameters.keys.map(jwk.create));
     return validateJsonWebKeys(keys);
   } catch (error: unknown) {
     throw new InvalidJsonWebKeySetError('Invalid JSON Web Key Set Parameter "keys".', { cause: error });

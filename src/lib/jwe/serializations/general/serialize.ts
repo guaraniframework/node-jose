@@ -41,10 +41,9 @@ export async function serialize(
 
   const header = recipients[0]!.header;
 
-  const { aad, detached, jwks } = options;
   const { compressionBackend, contentEncryptionBackend } = header;
 
-  const contentEncryptionKey = await randomBytesAsync(header.contentEncryptionBackend.cekSize);
+  const contentEncryptionKey = await randomBytesAsync(header.contentEncryptionBackend.contentEncryptionKeySize);
 
   const encodedProtectedHeader =
     'protectedHeader' in headers
@@ -53,11 +52,11 @@ export async function serialize(
 
   let additionalAuthenticatedData = Buffer.from(encodedProtectedHeader, 'ascii');
 
-  if (Buffer.isBuffer(aad)) {
+  if (Buffer.isBuffer(options.additionalAuthenticatedData)) {
     additionalAuthenticatedData = Buffer.concat([
       additionalAuthenticatedData,
       Buffer.from('.', 'ascii'),
-      Buffer.from(aad.toString('base64url'), 'ascii'),
+      Buffer.from(options.additionalAuthenticatedData.toString('base64url'), 'ascii'),
     ]);
   }
 
@@ -76,7 +75,7 @@ export async function serialize(
 
   const tokenRecipients = await Promise.all(
     recipients.map<Promise<GeneralJsonWebEncryptionTokenRecipient>>(async (recipient, index) => {
-      const jsonWebKey = jwks?.[index] ?? recipient.header.jsonWebKey!;
+      const jsonWebKey = options.jsonWebKeys?.[index] ?? recipient.header.jsonWebKey!;
 
       const encryptedKey = await recipient.header.keyManagementBackend.wrap(
         contentEncryptionKey,
@@ -114,14 +113,14 @@ export async function serialize(
     Reflect.set(token, 'aad', additionalAuthenticatedData.toString('ascii'));
   }
 
-  if (detached !== true) {
+  if (options.detached !== true) {
     Reflect.set(token, 'ciphertext', ciphertext.toString('base64url'));
   }
 
   return token;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validatePlaintext(plaintext: Buffer): void {
   if (!Buffer.isBuffer(plaintext) || plaintext.byteLength === 0) {
     throw new TypeError('The provided Plaintext is invalid.');
@@ -219,18 +218,21 @@ function validateOptions(
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('aad' in options && (!Buffer.isBuffer(options.aad) || options.aad.byteLength === 0)) {
-    throw new TypeError('The provided option "aad" is invalid.');
+  if (
+    'additionalAuthenticatedData' in options &&
+    (!Buffer.isBuffer(options.additionalAuthenticatedData) || options.additionalAuthenticatedData.byteLength === 0)
+  ) {
+    throw new TypeError('The provided option "additionalAuthenticatedData" is invalid.');
   }
 
   if (
-    'jwks' in options &&
-    (!Array.isArray(options.jwks) ||
-      options.jwks.length === 0 ||
-      options.jwks.some((jwk) => !(jwk instanceof JsonWebKey)) ||
-      options.jwks.length !== recipients.length)
+    'jsonWebKeys' in options &&
+    (!Array.isArray(options.jsonWebKeys) ||
+      options.jsonWebKeys.length === 0 ||
+      options.jsonWebKeys.some((jwk) => !(jwk instanceof JsonWebKey)) ||
+      options.jsonWebKeys.length !== recipients.length)
   ) {
-    throw new TypeError('The provided option "jwks" is invalid.');
+    throw new TypeError('The provided option "jsonWebKeys" is invalid.');
   }
 
   if ('detached' in options && typeof options.detached !== 'boolean') {

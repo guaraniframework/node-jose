@@ -67,7 +67,7 @@ export async function decode(token: FlattenedJsonWebSignatureToken): Promise<Fla
   }
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function isValidFlattenedJsonWebSignatureToken(token: FlattenedJsonWebSignatureToken): boolean {
   if (!('protected' in token) && !('header' in token)) {
     return false;

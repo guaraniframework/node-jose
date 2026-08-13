@@ -14,9 +14,9 @@ jest.mock<typeof crypto>('crypto', () => ({
 }));
 
 describe('RSAES JSON Web Encryption Key Management Backend', () => {
-  const cek = Buffer.from('AAECAwQFBgcICQoLDA0ODw', 'base64url');
+  const contentEncryptionKey = Buffer.from('AAECAwQFBgcICQoLDA0ODw', 'base64url');
 
-  const publicJwk = new RsaJsonWebKey({
+  const publicJsonWebKey = new RsaJsonWebKey({
     kty: 'RSA',
     n:
       'xjpFydzTbByzL5jhEa2yQO63dpS9d9SKaN107AR69skKiTR4uK1c4SzDt4YcurDB' +
@@ -28,8 +28,8 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
     e: 'AQAB',
   });
 
-  const privateJwk = new RsaJsonWebKey({
-    ...publicJwk.parameters,
+  const privateJsonWebKey = new RsaJsonWebKey({
+    ...publicJsonWebKey.parameters,
     d:
       'cc2YrWia9LGRad0SMe0PrlmeeHSyRe5-u--QJcP4uF_5LYYzXIsjDJ9_iYh0S_YY' +
       'e6bLjqHOSp44OHvJqoXMX5j3-ECKnNjnUHMtRB2awXGBqBOhB8TqoQXgmXDi1jx_' +
@@ -59,9 +59,9 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
       '6590ySgbH81pEM8FQW1JBATz0MYtUNZAt8N360vayE4',
   });
 
-  const wrongAlgJwk = new RsaJsonWebKey({ ...privateJwk.parameters, alg: 'RS256' });
+  const wrongAlgJsonWebKey = new RsaJsonWebKey({ ...privateJsonWebKey.parameters, alg: 'RS256' });
 
-  const wrongKtyJwk = new EllipticCurveJsonWebKey({
+  const wrongKtyJsonWebKey = new EllipticCurveJsonWebKey({
     kty: 'EC',
     crv: 'P-256',
     x: '4c_cS6IT6jaVQeobt_6BDCTmzBaBOTmmiSCpjd5a6Og',
@@ -69,9 +69,9 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
     d: 'bwVX6Vx-TOfGKYOPAcu2xhaj3JUzs-McsC-suaHnFBo',
   });
 
-  const wrongEk = Buffer.from('lHuMKm2fxX76BzBvQrVxDA5w3g3-oOqJDP4l5UeCSCY', 'base64url');
+  const wrongEncryptedKey = Buffer.from('lHuMKm2fxX76BzBvQrVxDA5w3g3-oOqJDP4l5UeCSCY', 'base64url');
 
-  const wrongJwk = new RsaJsonWebKey({
+  const wrongJsonWebKey = new RsaJsonWebKey({
     kty: 'RSA',
     n:
       'mtgsnD4B-xxzdYNrNrbIaOskyYQ4XzocDO8Qi4JNE5rtMVopjIRPpo_FJlXM-pBE' +
@@ -115,7 +115,7 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     const header = new JsonWebEncryptionHeader({ alg: 'RSA-OAEP', enc: 'A128GCM' });
 
-    let ek!: Buffer;
+    let encryptedKey!: Buffer;
 
     describe('hash', () => {
       it('should be "sha-1".', () => {
@@ -131,85 +131,91 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     describe('wrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.wrap(cek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.wrap(cek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should wrap the provided Content Encryption Key.', async () => {
-        await expect(async () => (ek = await backend.wrap(cek, publicJwk, header))).resolves.not.toThrow();
+        await expect(async () => {
+          encryptedKey = await backend.wrap(contentEncryptionKey, publicJsonWebKey, header);
+        }).resolves.not.toThrow();
 
-        expect(ek).toBeInstanceOf(Buffer);
-        expect(ek).toHaveLength(256);
+        expect(encryptedKey).toBeInstanceOf(Buffer);
+        expect(encryptedKey).toHaveLength(256);
       });
     });
 
     describe('unwrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.unwrap(ek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.unwrap(ek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.unwrap(ek, publicJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, publicJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to unwrap an Encrypted Key.',
         );
       });
 
       it('should throw when the provided Encrypted Key is invalid.', async () => {
-        await expect(backend.unwrap(wrongEk, privateJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(wrongEncryptedKey, privateJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.unwrap(ek, wrongJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should unwrap the provided Encrypted Key.', async () => {
-        await expect(backend.unwrap(ek, privateJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.unwrap(encryptedKey, privateJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
 
     describe('generateContentEncryptionKey()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.generateContentEncryptionKey(wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should generate a Content Encryption Key.', async () => {
-        await expect(backend.generateContentEncryptionKey(publicJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.generateContentEncryptionKey(publicJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
   });
@@ -219,7 +225,7 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     const header = new JsonWebEncryptionHeader({ alg: 'RSA-OAEP-256', enc: 'A128GCM' });
 
-    let ek!: Buffer;
+    let encryptedKey!: Buffer;
 
     describe('hash', () => {
       it('should be "sha-256".', () => {
@@ -235,85 +241,91 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     describe('wrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.wrap(cek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.wrap(cek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should wrap the provided Content Encryption Key.', async () => {
-        await expect(async () => (ek = await backend.wrap(cek, publicJwk, header))).resolves.not.toThrow();
+        await expect(async () => {
+          encryptedKey = await backend.wrap(contentEncryptionKey, publicJsonWebKey, header);
+        }).resolves.not.toThrow();
 
-        expect(ek).toBeInstanceOf(Buffer);
-        expect(ek).toHaveLength(256);
+        expect(encryptedKey).toBeInstanceOf(Buffer);
+        expect(encryptedKey).toHaveLength(256);
       });
     });
 
     describe('unwrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.unwrap(ek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.unwrap(ek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.unwrap(ek, publicJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, publicJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to unwrap an Encrypted Key.',
         );
       });
 
       it('should throw when the provided Encrypted Key is invalid.', async () => {
-        await expect(backend.unwrap(wrongEk, privateJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(wrongEncryptedKey, privateJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.unwrap(ek, wrongJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should unwrap the provided Encrypted Key.', async () => {
-        await expect(backend.unwrap(ek, privateJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.unwrap(encryptedKey, privateJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
 
     describe('generateContentEncryptionKey()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.generateContentEncryptionKey(wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should generate a Content Encryption Key.', async () => {
-        await expect(backend.generateContentEncryptionKey(publicJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.generateContentEncryptionKey(publicJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
   });
@@ -323,7 +335,7 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     const header = new JsonWebEncryptionHeader({ alg: 'RSA-OAEP-384', enc: 'A128GCM' });
 
-    let ek!: Buffer;
+    let encryptedKey!: Buffer;
 
     describe('hash', () => {
       it('should be "sha-384".', () => {
@@ -339,85 +351,91 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     describe('wrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.wrap(cek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.wrap(cek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should wrap the provided Content Encryption Key.', async () => {
-        await expect(async () => (ek = await backend.wrap(cek, publicJwk, header))).resolves.not.toThrow();
+        await expect(async () => {
+          encryptedKey = await backend.wrap(contentEncryptionKey, publicJsonWebKey, header);
+        }).resolves.not.toThrow();
 
-        expect(ek).toBeInstanceOf(Buffer);
-        expect(ek).toHaveLength(256);
+        expect(encryptedKey).toBeInstanceOf(Buffer);
+        expect(encryptedKey).toHaveLength(256);
       });
     });
 
     describe('unwrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.unwrap(ek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.unwrap(ek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.unwrap(ek, publicJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, publicJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to unwrap an Encrypted Key.',
         );
       });
 
       it('should throw when the provided Encrypted Key is invalid.', async () => {
-        await expect(backend.unwrap(wrongEk, privateJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(wrongEncryptedKey, privateJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.unwrap(ek, wrongJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should unwrap the provided Encrypted Key.', async () => {
-        await expect(backend.unwrap(ek, privateJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.unwrap(encryptedKey, privateJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
 
     describe('generateContentEncryptionKey()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.generateContentEncryptionKey(wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should generate a Content Encryption Key.', async () => {
-        await expect(backend.generateContentEncryptionKey(publicJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.generateContentEncryptionKey(publicJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
   });
@@ -427,7 +445,7 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     const header = new JsonWebEncryptionHeader({ alg: 'RSA-OAEP-512', enc: 'A128GCM' });
 
-    let ek!: Buffer;
+    let encryptedKey!: Buffer;
 
     describe('hash', () => {
       it('should be "sha-512".', () => {
@@ -443,85 +461,91 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     describe('wrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.wrap(cek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.wrap(cek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should wrap the provided Content Encryption Key.', async () => {
-        await expect(async () => (ek = await backend.wrap(cek, publicJwk, header))).resolves.not.toThrow();
+        await expect(async () => {
+          encryptedKey = await backend.wrap(contentEncryptionKey, publicJsonWebKey, header);
+        }).resolves.not.toThrow();
 
-        expect(ek).toBeInstanceOf(Buffer);
-        expect(ek).toHaveLength(256);
+        expect(encryptedKey).toBeInstanceOf(Buffer);
+        expect(encryptedKey).toHaveLength(256);
       });
     });
 
     describe('unwrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.unwrap(ek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.unwrap(ek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.unwrap(ek, publicJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, publicJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to unwrap an Encrypted Key.',
         );
       });
 
       it('should throw when the provided Encrypted Key is invalid.', async () => {
-        await expect(backend.unwrap(wrongEk, privateJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(wrongEncryptedKey, privateJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.unwrap(ek, wrongJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebEncryptionError,
           'The provided JSON Web Encryption is invalid.',
         );
       });
 
       it('should unwrap the provided Encrypted Key.', async () => {
-        await expect(backend.unwrap(ek, privateJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.unwrap(encryptedKey, privateJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
 
     describe('generateContentEncryptionKey()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.generateContentEncryptionKey(wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should generate a Content Encryption Key.', async () => {
-        await expect(backend.generateContentEncryptionKey(publicJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.generateContentEncryptionKey(publicJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
   });
@@ -531,7 +555,7 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     const header = new JsonWebEncryptionHeader({ alg: 'RSA1_5', enc: 'A128GCM' });
 
-    let ek!: Buffer;
+    let encryptedKey!: Buffer;
 
     describe('hash', () => {
       it('should be undefined.', () => {
@@ -547,71 +571,77 @@ describe('RSAES JSON Web Encryption Key Management Backend', () => {
 
     describe('wrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.wrap(cek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.wrap(cek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.wrap(contentEncryptionKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should wrap the provided Content Encryption Key.', async () => {
-        await expect(async () => (ek = await backend.wrap(cek, publicJwk, header))).resolves.not.toThrow();
+        await expect(async () => {
+          encryptedKey = await backend.wrap(contentEncryptionKey, publicJsonWebKey, header);
+        }).resolves.not.toThrow();
 
-        expect(ek).toBeInstanceOf(Buffer);
-        expect(ek).toHaveLength(256);
+        expect(encryptedKey).toBeInstanceOf(Buffer);
+        expect(encryptedKey).toHaveLength(256);
       });
     });
 
     describe('unwrap()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.unwrap(ek, wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.unwrap(ek, <any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, <any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.unwrap(ek, publicJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.unwrap(encryptedKey, publicJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to unwrap an Encrypted Key.',
         );
       });
 
       it('should unwrap the provided Encrypted Key.', async () => {
-        await expect(backend.unwrap(ek, privateJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.unwrap(encryptedKey, privateJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
 
     describe('generateContentEncryptionKey()', () => {
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Encryption Algorithm.', async () => {
-        await expect(backend.generateContentEncryptionKey(wrongAlgJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(wrongAlgJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Encryption Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJwk, header)).rejects.toThrowWithMessage(
+        await expect(backend.generateContentEncryptionKey(<any>wrongKtyJsonWebKey, header)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Encryption Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should generate a Content Encryption Key.', async () => {
-        await expect(backend.generateContentEncryptionKey(publicJwk, header)).resolves.toStrictEqual(cek);
+        await expect(backend.generateContentEncryptionKey(publicJsonWebKey, header)).resolves.toStrictEqual(
+          contentEncryptionKey,
+        );
       });
     });
   });

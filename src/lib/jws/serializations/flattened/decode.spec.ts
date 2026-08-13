@@ -13,6 +13,7 @@ const invalidTokens: any[] = [undefined, null, true, 1, 1.2, 1n, Symbol('a'), Bu
 
 const invalidTokenFormats: any[] = [
   {},
+  { protected: undefined },
   { protected: null },
   { protected: true },
   { protected: 1 },
@@ -25,6 +26,7 @@ const invalidTokenFormats: any[] = [
   { protected: {} },
   { protected: [] },
   { protected: '' },
+  { protected: 'eyJhbGciOiJIUzI1NiJ9', header: undefined },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', header: null },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', header: true },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', header: 1 },
@@ -36,6 +38,7 @@ const invalidTokenFormats: any[] = [
   { protected: 'eyJhbGciOiJIUzI1NiJ9', header: Buffer.alloc(1) },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', header: () => 1 },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', header: [] },
+  { protected: 'eyJhbGciOiJIUzI1NiJ9', payload: undefined },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', payload: null },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', payload: true },
   { protected: 'eyJhbGciOiJIUzI1NiJ9', payload: 1 },

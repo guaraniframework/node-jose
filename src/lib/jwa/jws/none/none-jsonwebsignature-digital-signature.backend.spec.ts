@@ -27,7 +27,7 @@ describe('None JSON Web Signature Digital Signature Backend', () => {
   describe('none', () => {
     const backend = new NoneJsonWebSignatureDigitalSignatureBackend();
 
-    const jwk = null;
+    const jsonWebKey = null;
     const signature = Buffer.alloc(0);
 
     const wrongSignature = Buffer.from('oYyAwnx7D5WIo3L1WWx_zBSNX12nH8lwXQHgpPiApSk', 'base64url');
@@ -35,8 +35,8 @@ describe('None JSON Web Signature Digital Signature Backend', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -44,15 +44,15 @@ describe('None JSON Web Signature Digital Signature Backend', () => {
       );
 
       it('should sign the provided Message.', async () => {
-        await expect(backend.sign(message, jwk)).resolves.toStrictEqual(signature);
+        await expect(backend.sign(message, jsonWebKey)).resolves.toStrictEqual(signature);
       });
     });
 
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -60,14 +60,14 @@ describe('None JSON Web Signature Digital Signature Backend', () => {
       );
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, jwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, jsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, jwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, jsonWebKey)).resolves.not.toThrow();
       });
     });
   });

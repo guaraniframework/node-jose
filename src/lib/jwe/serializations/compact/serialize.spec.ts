@@ -39,7 +39,7 @@ const invalidProtectedHeaders: any[] = [
 
 const invalidSerializeOptions: any[] = [null, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
 
-const invalidJwks: any[] = [
+const invalidJsonWebKeys: any[] = [
   undefined,
   null,
   true,
@@ -110,7 +110,7 @@ describe('serialize()', () => {
   const contentEncryptionKey = Buffer.from('BNMfxVSd_P4LZJ36P6pqzmt81C1vawnbyLEA8I-cLM8', 'base64url');
   const initializationVector = Buffer.from('AxY8DCtDaGlsbGljb3RoZQ', 'base64url');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg' });
 
   beforeEach(() => {
     jest
@@ -150,10 +150,10 @@ describe('serialize()', () => {
     );
   });
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
-    await expect(serialize(plaintext, protectedHeader, { jwk })).rejects.toThrowWithMessage(
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
+    await expect(serialize(plaintext, protectedHeader, { jsonWebKey })).rejects.toThrowWithMessage(
       TypeError,
-      'The provided option "jwk" is invalid.',
+      'The provided option "jsonWebKey" is invalid.',
     );
   });
 
@@ -169,22 +169,24 @@ describe('serialize()', () => {
   });
 
   it('should serialize a Compact JSON Web Encryption Attached Token.', async () => {
-    await expect(serialize(plaintext, protectedHeader, { jwk })).resolves.toStrictEqual(attachedToken);
+    await expect(serialize(plaintext, protectedHeader, { jsonWebKey })).resolves.toStrictEqual(attachedToken);
   });
 
   it('should serialize a Compact JSON Web Encryption Detached Token.', async () => {
-    await expect(serialize(plaintext, protectedHeader, { jwk, detached: true })).resolves.toStrictEqual(detachedToken);
+    await expect(serialize(plaintext, protectedHeader, { jsonWebKey, detached: true })).resolves.toStrictEqual(
+      detachedToken,
+    );
   });
 
   it('should serialize a Compact JSON Web Encryption Compressed Attached Token.', async () => {
-    await expect(serialize(plaintext, protectedCompressedHeader, { jwk })).resolves.toStrictEqual(
+    await expect(serialize(plaintext, protectedCompressedHeader, { jsonWebKey })).resolves.toStrictEqual(
       compressedAttachedToken,
     );
   });
 
   it('should serialize a Compact JSON Web Encryption Compressed Detached Token.', async () => {
-    await expect(serialize(plaintext, protectedCompressedHeader, { jwk, detached: true })).resolves.toStrictEqual(
-      compressedDetachedToken,
-    );
+    await expect(
+      serialize(plaintext, protectedCompressedHeader, { jsonWebKey, detached: true }),
+    ).resolves.toStrictEqual(compressedDetachedToken);
   });
 });

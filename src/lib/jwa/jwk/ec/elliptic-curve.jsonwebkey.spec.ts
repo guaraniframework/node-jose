@@ -6,7 +6,7 @@ import { EllipticCurveJsonWebKey } from './elliptic-curve.jsonwebkey';
 import { EllipticCurveJsonWebKeyParameters } from './elliptic-curve-jsonwebkey.parameters';
 import { GenerateEllipticCurveJsonWebKeyOptions } from './generate-elliptic-curve-jsonwebkey.options';
 
-const invalidCrvs: any[] = [
+const invalidCurves: any[] = [
   undefined,
   null,
   true,
@@ -63,7 +63,7 @@ describe('Elliptic Curve JSON Web Key', () => {
   });
 
   describe('constructor', () => {
-    it.each(invalidCrvs)('should throw when the provided JSON Web Key Parameter "crv" is invalid.', (crv) => {
+    it.each(invalidCurves)('should throw when the provided JSON Web Key Parameter "crv" is invalid.', (crv) => {
       expect(() => new EllipticCurveJsonWebKey({ ...publicParameters, crv })).toThrowWithMessage(
         InvalidJsonWebKeyError,
         'Invalid JSON Web Key Parameter "crv".',
@@ -92,25 +92,25 @@ describe('Elliptic Curve JSON Web Key', () => {
     });
 
     it('should return a Public Elliptic Curve JSON Web Key.', () => {
-      let jwk!: EllipticCurveJsonWebKey;
+      let jsonWebKey!: EllipticCurveJsonWebKey;
 
-      expect(() => (jwk = new EllipticCurveJsonWebKey(publicParameters))).not.toThrow();
+      expect(() => (jsonWebKey = new EllipticCurveJsonWebKey(publicParameters))).not.toThrow();
 
-      expect(jwk.parameters).toStrictEqual(publicParameters);
+      expect(jsonWebKey.parameters).toStrictEqual(publicParameters);
 
-      expect(jwk.cryptoKey).toBeInstanceOf(KeyObject);
-      expect(jwk.cryptoKey.export({ format: 'jwk' })).toStrictEqual(publicParameters);
+      expect(jsonWebKey.cryptoKey).toBeInstanceOf(KeyObject);
+      expect(jsonWebKey.cryptoKey.export({ format: 'jwk' })).toStrictEqual(publicParameters);
     });
 
     it('should return a Private Elliptic Curve JSON Web Key.', () => {
-      let jwk!: EllipticCurveJsonWebKey;
+      let jsonWebKey!: EllipticCurveJsonWebKey;
 
-      expect(() => (jwk = new EllipticCurveJsonWebKey(privateParameters))).not.toThrow();
+      expect(() => (jsonWebKey = new EllipticCurveJsonWebKey(privateParameters))).not.toThrow();
 
-      expect(jwk.parameters).toStrictEqual(privateParameters);
+      expect(jsonWebKey.parameters).toStrictEqual(privateParameters);
 
-      expect(jwk.cryptoKey).toBeInstanceOf(KeyObject);
-      expect(jwk.cryptoKey.export({ format: 'jwk' })).toStrictEqual(privateParameters);
+      expect(jsonWebKey.cryptoKey).toBeInstanceOf(KeyObject);
+      expect(jsonWebKey.cryptoKey.export({ format: 'jwk' })).toStrictEqual(privateParameters);
     });
   });
 
@@ -122,7 +122,7 @@ describe('Elliptic Curve JSON Web Key', () => {
       );
     });
 
-    it.each(invalidCrvs)('should throw when the provided Elliptic Curve is invalid.', async (curve) => {
+    it.each(invalidCurves)('should throw when the provided Elliptic Curve is invalid.', async (curve) => {
       await expect(EllipticCurveJsonWebKey.generate({ curve })).rejects.toThrowWithMessage(
         TypeError,
         'The provided Elliptic Curve is invalid.',
@@ -147,66 +147,70 @@ describe('Elliptic Curve JSON Web Key', () => {
 
   describe('getThumbprint()', () => {
     it('should return the Thumbprint of the Public JSON Web Key.', () => {
-      const jwk = new EllipticCurveJsonWebKey(publicParameters);
+      const jsonWebKey = new EllipticCurveJsonWebKey(publicParameters);
       const createHashSpy = jest.spyOn(crypto, 'createHash');
 
-      expect(jwk.getThumbprint().toString('base64url')).toStrictEqual('LHM5p37TAesdI-tFqs7LOmDufKjrU0nq1jFRwI_7mvI');
+      expect(jsonWebKey.getThumbprint().toString('base64url')).toStrictEqual(
+        'LHM5p37TAesdI-tFqs7LOmDufKjrU0nq1jFRwI_7mvI',
+      );
       expect(createHashSpy).toHaveBeenCalledOnce();
     });
 
     it('should return the Thumbprint of the Private JSON Web Key.', () => {
-      const jwk = new EllipticCurveJsonWebKey(privateParameters);
+      const jsonWebKey = new EllipticCurveJsonWebKey(privateParameters);
       const createHashSpy = jest.spyOn(crypto, 'createHash');
 
-      expect(jwk.getThumbprint().toString('base64url')).toStrictEqual('LHM5p37TAesdI-tFqs7LOmDufKjrU0nq1jFRwI_7mvI');
+      expect(jsonWebKey.getThumbprint().toString('base64url')).toStrictEqual(
+        'LHM5p37TAesdI-tFqs7LOmDufKjrU0nq1jFRwI_7mvI',
+      );
       expect(createHashSpy).toHaveBeenCalledOnce();
     });
   });
 
   describe('getThumbprintURI()', () => {
     it('should return the Thumbprint of the Public JSON Web Key.', () => {
-      const jwk = new EllipticCurveJsonWebKey(publicParameters);
+      const jsonWebKey = new EllipticCurveJsonWebKey(publicParameters);
 
-      expect(jwk.getThumbprintURI()).toStrictEqual(
+      expect(jsonWebKey.getThumbprintURI()).toStrictEqual(
         'urn:ietf:params:oauth:jwk-thumbprint:sha-256:LHM5p37TAesdI-tFqs7LOmDufKjrU0nq1jFRwI_7mvI',
       );
     });
 
     it('should return the Thumbprint of the Private JSON Web Key.', () => {
-      const jwk = new EllipticCurveJsonWebKey(privateParameters);
+      const jsonWebKey = new EllipticCurveJsonWebKey(privateParameters);
 
-      expect(jwk.getThumbprintURI()).toStrictEqual(
+      expect(jsonWebKey.getThumbprintURI()).toStrictEqual(
         'urn:ietf:params:oauth:jwk-thumbprint:sha-256:LHM5p37TAesdI-tFqs7LOmDufKjrU0nq1jFRwI_7mvI',
       );
     });
   });
 
   describe('toJSON()', () => {
-    const publicJwk = new EllipticCurveJsonWebKey(publicParameters);
-    const privateJwk = new EllipticCurveJsonWebKey(privateParameters);
+    const publicJsonWebKey = new EllipticCurveJsonWebKey(publicParameters);
+    const privateJsonWebKey = new EllipticCurveJsonWebKey(privateParameters);
 
     it('should return the Public JSON Web Key Parameters of the Public Key when exportPrivate is undefined.', () => {
-      expect(publicJwk.toJSON()).toStrictEqual(publicParameters);
+      expect(publicJsonWebKey.toJSON()).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Public Key when exportPrivate is false.', () => {
-      expect(publicJwk.toJSON(false)).toStrictEqual(publicParameters);
+      expect(publicJsonWebKey.toJSON(false)).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Public Key when exportPrivate is true.', () => {
-      expect(publicJwk.toJSON(true)).toStrictEqual(publicParameters);
+      expect(publicJsonWebKey.toJSON(true)).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Private Key when exportPrivate is undefined.', () => {
-      expect(privateJwk.toJSON()).toStrictEqual(publicParameters);
+      expect(privateJsonWebKey.toJSON()).toStrictEqual(publicParameters);
     });
 
     it('should return the Public JSON Web Key Parameters of the Private Key when exportPrivate is false.', () => {
-      expect(privateJwk.toJSON(false)).toStrictEqual(publicParameters);
+      expect(privateJsonWebKey.toJSON(false)).toStrictEqual(publicParameters);
     });
 
     it('should return the Private JSON Web Key Parameters of the Private Key when exportPrivate is true.', () => {
-      expect(privateJwk.toJSON(true)).toStrictEqual(privateParameters);
+      expect(privateJsonWebKey.toJSON(true)).toStrictEqual(privateParameters);
     });
   });
 });

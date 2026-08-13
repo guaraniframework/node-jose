@@ -9,12 +9,12 @@ export interface GeneralJsonWebEncryptionSerializationOptions {
   /**
    * JSON Web Encryption Additional Authenticated Data.
    */
-  readonly aad?: Buffer;
+  readonly additionalAuthenticatedData?: Buffer;
 
   /**
    * JSON Web Keys.
    */
-  readonly jwks?: JsonWebKey[];
+  readonly jsonWebKeys?: JsonWebKey[];
 
   /**
    * Detached Ciphertext.

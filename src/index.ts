@@ -55,14 +55,13 @@ export { type GeneralJsonWebEncryptionToken } from './lib/jwe/serializations/gen
 // #endregion
 
 // #region JSON Web Key
-export { createJsonWebKey } from './lib/jwk/create-jsonwebkey';
-export { generateJsonWebKey } from './lib/jwk/generate-jsonwebkey';
+export { jwk } from './lib/jwk';
 export { type JsonWebKey } from './lib/jwk/jsonwebkey';
 export { type JsonWebKeyParameters } from './lib/jwk/jsonwebkey.parameters';
 // #endregion
 
 // #region JSON Web Key Set
-export { createJsonWebKeySet } from './lib/jwks/create-jsonwebkeyset';
+export { jwks } from './lib/jwks';
 export { type JsonWebKeySet } from './lib/jwks/jsonwebkeyset';
 export { type JsonWebKeySetParameters } from './lib/jwks/jsonwebkeyset.parameters';
 // #endregion

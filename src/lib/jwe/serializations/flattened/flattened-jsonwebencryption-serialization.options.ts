@@ -9,12 +9,12 @@ export interface FlattenedJsonWebEncryptionSerializationOptions {
   /**
    * JSON Web Encryption Additional Authenticated Data.
    */
-  readonly aad?: Buffer;
+  readonly additionalAuthenticatedData?: Buffer;
 
   /**
    * JSON Web Key.
    */
-  readonly jwk?: JsonWebKey;
+  readonly jsonWebKey?: JsonWebKey;
 
   /**
    * Detached Ciphertext.

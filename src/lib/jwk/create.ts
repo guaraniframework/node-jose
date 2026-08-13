@@ -20,7 +20,7 @@ import { JsonWebKeyParameters } from './jsonwebkey.parameters';
  * @throws {InvalidJsonWebKeyError} The provided JSON Web Key Parameters are invalid.
  * @returns JSON Web Key.
  */
-export async function createJsonWebKey(parameters: JsonWebKeyParameters): Promise<JsonWebKey> {
+export async function create(parameters: JsonWebKeyParameters): Promise<JsonWebKey> {
   if (!isPlainObject(parameters)) {
     throw new TypeError('The provided JSON Web Key Parameters is invalid.');
   }
@@ -29,32 +29,32 @@ export async function createJsonWebKey(parameters: JsonWebKeyParameters): Promis
     throw new InvalidJsonWebKeyError('Invalid JSON Web Key Parameter "kty".');
   }
 
-  let jwk: JsonWebKey;
+  let jsonWebKey: JsonWebKey;
 
   switch (parameters.kty) {
     case 'EC':
-      jwk = new EllipticCurveJsonWebKey(parameters);
+      jsonWebKey = new EllipticCurveJsonWebKey(parameters);
       break;
 
     case 'OKP':
-      jwk = new OctetKeyPairJsonWebKey(parameters);
+      jsonWebKey = new OctetKeyPairJsonWebKey(parameters);
       break;
 
     case 'RSA':
-      jwk = new RsaJsonWebKey(parameters);
+      jsonWebKey = new RsaJsonWebKey(parameters);
       break;
 
     case 'oct':
-      jwk = new OctetSequenceJsonWebKey(parameters);
+      jsonWebKey = new OctetSequenceJsonWebKey(parameters);
       break;
 
     default:
       throw new InvalidJsonWebKeyError('Invalid JSON Web Key Parameter "kty".');
   }
 
-  jwk.certificateChain = await getJsonWebKeyX509CertificateChain(parameters);
+  jsonWebKey.certificateChain = await getJsonWebKeyX509CertificateChain(parameters);
 
-  return jwk;
+  return jsonWebKey;
 }
 
 async function getJsonWebKeyX509CertificateChain(parameters: JsonWebKeyParameters): Promise<X509Certificate[] | null> {

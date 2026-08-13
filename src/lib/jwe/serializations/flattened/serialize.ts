@@ -34,10 +34,9 @@ export async function serialize(
   const header = await validateHeaders(headers);
   validateOptions(options);
 
-  const { aad, detached, jwk } = options;
   const { compressionBackend, contentEncryptionBackend, keyManagementBackend } = header;
 
-  const jsonWebKey = jwk ?? header.jsonWebKey!;
+  const jsonWebKey = options.jsonWebKey ?? header.jsonWebKey!;
 
   const contentEncryptionKey = await keyManagementBackend.generateContentEncryptionKey(jsonWebKey, header);
   const encryptedKey = await keyManagementBackend.wrap(contentEncryptionKey, jsonWebKey, header);
@@ -49,11 +48,11 @@ export async function serialize(
 
   let additionalAuthenticatedData = Buffer.from(encodedProtectedHeader, 'ascii');
 
-  if (Buffer.isBuffer(aad)) {
+  if (Buffer.isBuffer(options.additionalAuthenticatedData)) {
     additionalAuthenticatedData = Buffer.concat([
       additionalAuthenticatedData,
       Buffer.from('.', 'ascii'),
-      Buffer.from(aad.toString('base64url'), 'ascii'),
+      Buffer.from(options.additionalAuthenticatedData.toString('base64url'), 'ascii'),
     ]);
   }
 
@@ -92,14 +91,14 @@ export async function serialize(
     Reflect.set(token, 'aad', additionalAuthenticatedData.toString('ascii'));
   }
 
-  if (detached !== true) {
+  if (options.detached !== true) {
     Reflect.set(token, 'ciphertext', ciphertext.toString('base64url'));
   }
 
   return token;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validatePlaintext(plaintext: Buffer): void {
   if (!Buffer.isBuffer(plaintext) || plaintext.byteLength === 0) {
     throw new TypeError('The provided Plaintext is invalid.');
@@ -158,12 +157,15 @@ function validateOptions(options: FlattenedJsonWebEncryptionSerializationOptions
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('aad' in options && (!Buffer.isBuffer(options.aad) || options.aad.byteLength === 0)) {
-    throw new TypeError('The provided option "aad" is invalid.');
+  if (
+    'additionalAuthenticatedData' in options &&
+    (!Buffer.isBuffer(options.additionalAuthenticatedData) || options.additionalAuthenticatedData.byteLength === 0)
+  ) {
+    throw new TypeError('The provided option "additionalAuthenticatedData" is invalid.');
   }
 
-  if ('jwk' in options && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if ('detached' in options && typeof options.detached !== 'boolean') {

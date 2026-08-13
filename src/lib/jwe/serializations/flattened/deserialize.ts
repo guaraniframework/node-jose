@@ -32,14 +32,6 @@ export async function deserialize(
 ): Promise<FlattenedJsonWebEncryption> {
   validateOptions(options);
 
-  const {
-    detachedCiphertext,
-    expectedCompressionAlgorithms,
-    expectedContentEncryptionAlgorithms,
-    expectedKeyManagementAlgorithms,
-    jwk,
-  } = options;
-
   let {
     additionalAuthenticatedData,
     authenticationTag,
@@ -52,18 +44,18 @@ export async function deserialize(
     unprotectedHeader,
   } = await decode(token);
 
-  validateDetachedCiphertext(ciphertext, detachedCiphertext);
+  validateDetachedCiphertext(ciphertext, options.detachedCiphertext);
 
-  if (jwk instanceof JsonWebKey) {
-    header.jsonWebKey = jwk;
+  if (options.jsonWebKey instanceof JsonWebKey) {
+    header.jsonWebKey = options.jsonWebKey;
   }
 
   const { compressionBackend, contentEncryptionBackend, jsonWebKey, keyManagementBackend, parameters } = header;
 
   validateExpectedAlgorithms(
-    expectedKeyManagementAlgorithms,
-    expectedContentEncryptionAlgorithms,
-    expectedCompressionAlgorithms,
+    options.expectedKeyManagementAlgorithms,
+    options.expectedContentEncryptionAlgorithms,
+    options.expectedCompressionAlgorithms,
     parameters,
   );
 
@@ -79,7 +71,7 @@ export async function deserialize(
       ])
     : aadHeader;
 
-  ciphertext ??= detachedCiphertext!;
+  ciphertext ??= options.detachedCiphertext!;
 
   const contentEncryptionKey = await keyManagementBackend.unwrap(encryptedKey, jsonWebKey!, header);
 
@@ -112,14 +104,14 @@ export async function deserialize(
   return jwe;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validateOptions(options: FlattenedJsonWebEncryptionDeserializationOptions): void {
   if (!isPlainObject(options)) {
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('jwk' in options && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if (

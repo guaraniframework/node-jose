@@ -34,18 +34,18 @@ export class EdDSAJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatu
    * Signs a Message using the provided JSON Web Key.
    *
    * @param message Message to be signed.
-   * @param jwk JSON Web Key used to sign the Message.
+   * @param jsonWebKey JSON Web Key used to sign the Message.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @returns Signature of the Message.
    */
-  public async sign(message: Buffer, jwk: OctetKeyPairJsonWebKey): Promise<Buffer> {
-    this.validateJsonWebKey(jwk);
+  public async sign(message: Buffer, jsonWebKey: OctetKeyPairJsonWebKey): Promise<Buffer> {
+    this.validateJsonWebKey(jsonWebKey);
 
-    if (jwk.cryptoKey.type !== 'private') {
+    if (jsonWebKey.cryptoKey.type !== 'private') {
       throw new InvalidJsonWebKeyError('The provided JSON Web Key cannot be used to sign a Message.');
     }
 
-    return await signAsync(null, message, jwk.cryptoKey);
+    return await signAsync(null, message, jsonWebKey.cryptoKey);
   }
 
   /**
@@ -53,14 +53,14 @@ export class EdDSAJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatu
    *
    * @param signature Signature to be verified.
    * @param message Message to be matched against the Signature.
-   * @param jwk JSON Web Key used to verify the Signature.
+   * @param jsonWebKey JSON Web Key used to verify the Signature.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @throws {InvalidJsonWebSignatureError} Failed to verify the provided JSON Web Signature.
    */
-  public async verify(signature: Buffer, message: Buffer, jwk: OctetKeyPairJsonWebKey): Promise<void> {
-    this.validateJsonWebKey(jwk);
+  public async verify(signature: Buffer, message: Buffer, jsonWebKey: OctetKeyPairJsonWebKey): Promise<void> {
+    this.validateJsonWebKey(jsonWebKey);
 
-    const result = await verifyAsync(null, message, jwk.cryptoKey, signature);
+    const result = await verifyAsync(null, message, jsonWebKey.cryptoKey, signature);
 
     if (!result) {
       throw new InvalidJsonWebSignatureError('The provided JSON Web Signature is invalid.');
@@ -70,20 +70,23 @@ export class EdDSAJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatu
   /**
    * Checks if the provided JSON Web Key can be used.
    *
-   * @param jwk JSON Web Key to be checked.
+   * @param jsonWebKey JSON Web Key to be checked.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    */
-  private validateJsonWebKey(jwk: OctetKeyPairJsonWebKey): void {
-    if (!(jwk instanceof JsonWebKey) || ('alg' in jwk.parameters && jwk.parameters.alg !== this.algorithm)) {
+  private validateJsonWebKey(jsonWebKey: OctetKeyPairJsonWebKey): void {
+    if (
+      !(jsonWebKey instanceof JsonWebKey) ||
+      ('alg' in jsonWebKey.parameters && jsonWebKey.parameters.alg !== this.algorithm)
+    ) {
       throw new InvalidJsonWebKeyError('The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.');
     }
 
-    if (jwk.parameters.kty !== 'OKP') {
+    if (jsonWebKey.parameters.kty !== 'OKP') {
       throw new InvalidJsonWebKeyError('The JSON Web Signature Algorithm only accepts "OKP" JSON Web Keys.');
     }
 
-    if (!EdDSAJsonWebSignatureDigitalSignatureBackend.#curves.includes(jwk.parameters.crv as EdwardsCurve)) {
-      throw new InvalidJsonWebKeyError('The JSON Web Key Parameters "crv" must be "Ed25519" or "Ed448".');
+    if (!EdDSAJsonWebSignatureDigitalSignatureBackend.#curves.includes(jsonWebKey.parameters.crv as EdwardsCurve)) {
+      throw new InvalidJsonWebKeyError('The JSON Web Key Parameter "crv" must be "Ed25519" or "Ed448".');
     }
   }
 }

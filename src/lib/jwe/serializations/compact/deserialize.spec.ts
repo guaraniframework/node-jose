@@ -21,7 +21,7 @@ const invalidDeserializeOptions: any[] = [
   [],
 ];
 
-const invalidJwks: any[] = [
+const invalidJsonWebKeys: any[] = [
   undefined,
   null,
   true,
@@ -38,6 +38,7 @@ const invalidJwks: any[] = [
 ];
 
 const invalidExpectedAlgorithms: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -54,6 +55,7 @@ const invalidExpectedAlgorithms: any[] = [
 ];
 
 const invalidDetachedCiphertexts: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -84,14 +86,14 @@ const invalidTokens: any[] = [
 ];
 
 describe('deserialize()', () => {
-  const wrongEkToken =
+  const wrongEncryptedKeyToken =
     'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0.' +
     'anBl9PSuJobKWwzWzJCqfMnejCvM5-WadN3zXMGyoCLW8_xmUldY3Q.' +
     'AxY8DCtDaGlsbGljb3RoZQ.' +
     'KDlTtXchhZTGufMYmOYGS4HffxPSUrfmqCHXaI9wOGY.' +
     'U0m_YmjN04DJvceFICbCVQ';
 
-  const wrongIvToken =
+  const wrongInitializationVectorToken =
     'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0.' +
     '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ.' +
     'eE63cGwX4T7eSspUA72t2Q.' +
@@ -105,7 +107,7 @@ describe('deserialize()', () => {
     'giYkZlt454236QV7AdREOuT0UOQrnNW1dpTna5JQpDk.' +
     'U0m_YmjN04DJvceFICbCVQ';
 
-  const wrongTagToken =
+  const wrongAuthenticationTagToken =
     'eyJhbGciOiJBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0.' +
     '6KB707dM9YTIgHtLvtgWQ8mKwboJW3of9locizkDTHzBC2IlrT1oOQ.' +
     'AxY8DCtDaGlsbGljb3RoZQ.' +
@@ -152,7 +154,7 @@ describe('deserialize()', () => {
   const ciphertext = Buffer.from('KDlTtXchhZTGufMYmOYGS4HffxPSUrfmqCHXaI9wOGY', 'base64url');
   const compressedCiphertext = Buffer.from('7_74Yt9JQPazdQVzwCiocFWXSAtgczzDQVUY9WXJ7KA', 'base64url');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg' });
 
   it.each(invalidDeserializeOptions)('should throw when the provided options is invalid.', async (options) => {
     await expect(deserialize(attachedToken, options)).rejects.toThrowWithMessage(
@@ -161,10 +163,10 @@ describe('deserialize()', () => {
     );
   });
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
-    await expect(deserialize(attachedToken, { jwk })).rejects.toThrowWithMessage(
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
+    await expect(deserialize(attachedToken, { jsonWebKey })).rejects.toThrowWithMessage(
       TypeError,
-      'The provided option "jwk" is invalid.',
+      'The provided option "jsonWebKey" is invalid.',
     );
   });
 
@@ -258,25 +260,25 @@ describe('deserialize()', () => {
   });
 
   it('should throw when the provided Encrypted Key fails to deserialize the provided Compact JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongEkToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongEncryptedKeyToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Initialization Vector fails to deserialize the provided Compact JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongIvToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongInitializationVectorToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Ciphertext fails to deserialize the provided Compact JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongCiphertextToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongCiphertextToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should throw when the provided Authentication Tag fails to deserialize the provided Compact JSON Web Encryption Token.', async () => {
-    await expect(deserialize(wrongTagToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongAuthenticationTagToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should return the deserialized Compact JSON Web Encryption from an Attached Compact JSON Web Encryption Token.', async () => {
     let jwe!: CompactJsonWebEncryption;
 
-    await expect(async () => (jwe = await deserialize(attachedToken, { jwk }))).resolves.not.toThrow();
+    await expect(async () => (jwe = await deserialize(attachedToken, { jsonWebKey }))).resolves.not.toThrow();
 
     expect(jwe.protectedHeader).toBeInstanceOf(JsonWebEncryptionHeader);
     expect(jwe.protectedHeader.parameters).toStrictEqual(protectedHeader);
@@ -287,7 +289,7 @@ describe('deserialize()', () => {
     let jwe!: CompactJsonWebEncryption;
 
     await expect(
-      async () => (jwe = await deserialize(detachedToken, { jwk, detachedCiphertext: ciphertext })),
+      async () => (jwe = await deserialize(detachedToken, { jsonWebKey, detachedCiphertext: ciphertext })),
     ).resolves.not.toThrow();
 
     expect(jwe.protectedHeader).toBeInstanceOf(JsonWebEncryptionHeader);
@@ -298,7 +300,7 @@ describe('deserialize()', () => {
   it('should return the deserialized Compact JSON Web Encryption from a Compressed Attached Compact JSON Web Encryption Token.', async () => {
     let jwe!: CompactJsonWebEncryption;
 
-    await expect(async () => (jwe = await deserialize(compressedAttachedToken, { jwk }))).resolves.not.toThrow();
+    await expect(async () => (jwe = await deserialize(compressedAttachedToken, { jsonWebKey }))).resolves.not.toThrow();
 
     expect(jwe.protectedHeader).toBeInstanceOf(JsonWebEncryptionHeader);
     expect(jwe.protectedHeader.parameters).toStrictEqual(protectedCompressedHeader);
@@ -309,7 +311,7 @@ describe('deserialize()', () => {
     let jwe!: CompactJsonWebEncryption;
 
     await expect(async () => {
-      jwe = await deserialize(compressedDetachedToken, { jwk, detachedCiphertext: compressedCiphertext });
+      jwe = await deserialize(compressedDetachedToken, { jsonWebKey, detachedCiphertext: compressedCiphertext });
     }).resolves.not.toThrow();
 
     expect(jwe.protectedHeader).toBeInstanceOf(JsonWebEncryptionHeader);

@@ -35,17 +35,16 @@ export async function serialize(
   const parsedHeadersCollection = await validateHeaders(headers);
   validateOptions(options, parsedHeadersCollection);
 
-  const { detached, jwks } = options;
   const isPayloadUnencoded = parsedHeadersCollection[0]!.header.parameters.b64 === false;
 
-  if (isPayloadUnencoded && payload.includes(0x2e) && detached !== true) {
+  if (isPayloadUnencoded && payload.includes(0x2e) && options.detached !== true) {
     throw new InvalidJsonWebSignatureError('The provided Unencoded Payload cannot be serialized.');
   }
 
   const token: GeneralJsonWebSignatureToken = {
     signatures: await Promise.all(
       parsedHeadersCollection.map(async (parsedHeaders, index) => {
-        const jwk = jwks?.[index];
+        const jwk = options.jsonWebKeys?.[index];
         const jsonWebKey = jwk === null || jwk instanceof JsonWebKey ? jwk : parsedHeaders.header.jsonWebKey;
 
         const encodedProtectedHeader =
@@ -76,14 +75,14 @@ export async function serialize(
     ),
   };
 
-  if (detached !== true) {
+  if (options.detached !== true) {
     Reflect.set(token, 'payload', payload.toString(isPayloadUnencoded ? 'utf8' : 'base64url'));
   }
 
   return token;
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validatePayload(payload: Buffer): void {
   if (!Buffer.isBuffer(payload) || payload.byteLength === 0) {
     throw new TypeError('The provided Payload is invalid.');
@@ -170,13 +169,13 @@ function validateOptions(
   }
 
   if (
-    'jwks' in options &&
-    (!Array.isArray(options.jwks) ||
-      options.jwks.length === 0 ||
-      options.jwks.some((jwk) => jwk !== null && !(jwk instanceof JsonWebKey)) ||
-      options.jwks.length !== parsedHeaders.length)
+    'jsonWebKeys' in options &&
+    (!Array.isArray(options.jsonWebKeys) ||
+      options.jsonWebKeys.length === 0 ||
+      options.jsonWebKeys.some((jwk) => jwk !== null && !(jwk instanceof JsonWebKey)) ||
+      options.jsonWebKeys.length !== parsedHeaders.length)
   ) {
-    throw new TypeError('The provided option "jwks" is invalid.');
+    throw new TypeError('The provided option "jsonWebKeys" is invalid.');
   }
 
   if ('detached' in options && typeof options.detached !== 'boolean') {

@@ -83,7 +83,7 @@ export class JsonWebSignatureHeader extends JoseHeader {
     }
   }
 
-  // #region Private Methods.
+  // #region Private Methods
   private static getDigitalSignatureBackend(
     parameters: JsonWebSignatureHeaderParameters,
   ): JsonWebSignatureDigitalSignatureBackend {

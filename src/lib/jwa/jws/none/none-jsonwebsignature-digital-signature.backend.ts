@@ -21,12 +21,12 @@ export class NoneJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatur
    * Signs a Message using the provided JSON Web Key.
    *
    * @param _message ~Message to be signed.~
-   * @param jwk JSON Web Key used to sign the Message.
+   * @param jsonWebKey JSON Web Key used to sign the Message.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @returns Signature of the Message.
    */
-  public async sign(_message: Buffer, jwk: null): Promise<Buffer> {
-    this.validateJsonWebKey(jwk);
+  public async sign(_message: Buffer, jsonWebKey: null): Promise<Buffer> {
+    this.validateJsonWebKey(jsonWebKey);
     return Buffer.alloc(0);
   }
 
@@ -35,12 +35,12 @@ export class NoneJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatur
    *
    * @param signature Signature to be verified.
    * @param _message ~Message to be matched against the Signature.~
-   * @param jwk JSON Web Key used to verify the Signature.
+   * @param jsonWebKey JSON Web Key used to verify the Signature.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    * @throws {InvalidJsonWebSignatureError} Failed to verify the provided JSON Web Signature.
    */
-  public async verify(signature: Buffer, _message: Buffer, jwk: null): Promise<void> {
-    this.validateJsonWebKey(jwk);
+  public async verify(signature: Buffer, _message: Buffer, jsonWebKey: null): Promise<void> {
+    this.validateJsonWebKey(jsonWebKey);
 
     if (signature.byteLength !== 0) {
       throw new InvalidJsonWebSignatureError('The provided JSON Web Signature is invalid.');
@@ -50,11 +50,11 @@ export class NoneJsonWebSignatureDigitalSignatureBackend extends JsonWebSignatur
   /**
    * Checks if the provided JSON Web Key can be used.
    *
-   * @param jwk JSON Web Key to be checked.
+   * @param jsonWebKey JSON Web Key to be checked.
    * @throws {InvalidJsonWebKeyError} The provided JSON Web Key cannot be used by the JSON Web Signature Digital Signature Algorithm.
    */
-  private validateJsonWebKey(jwk: null): void {
-    if (jwk !== null) {
+  private validateJsonWebKey(jsonWebKey: null): void {
+    if (jsonWebKey !== null) {
       throw new InvalidJsonWebKeyError('The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.');
     }
   }

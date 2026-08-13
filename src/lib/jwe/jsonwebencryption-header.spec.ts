@@ -10,7 +10,7 @@ import { JsonWebEncryptionCompressionBackend } from '../jwa/jwe/zip/jsonwebencry
 import { JsonWebEncryptionHeader } from './jsonwebencryption-header';
 import { JsonWebEncryptionHeaderParameters } from './jsonwebencryption-header.parameters';
 
-const invalidAlgs: any[] = [
+const invalidKeyManagementAlgorithms: any[] = [
   undefined,
   null,
   true,
@@ -26,7 +26,7 @@ const invalidAlgs: any[] = [
   'a',
 ];
 
-const invalidEncs: any[] = [
+const invalidContentEncryptionAlgorithms: any[] = [
   undefined,
   null,
   true,
@@ -42,7 +42,21 @@ const invalidEncs: any[] = [
   'a',
 ];
 
-const invalidZips: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, [], 'a'];
+const invalidCompressionAlgorithms: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+  'a',
+];
 
 const invalidIsJoseHeaderParametersData: any[] = [
   undefined,
@@ -84,6 +98,7 @@ const invalidIsJoseHeaderParametersData: any[] = [
   { alg: 'A128KW', enc: {} },
   { alg: 'A128KW', enc: [] },
   { alg: 'A128KW', enc: 'a' },
+  { alg: 'A128KW', enc: 'A128CBC-HS256', zip: undefined },
   { alg: 'A128KW', enc: 'A128CBC-HS256', zip: null },
   { alg: 'A128KW', enc: 'A128CBC-HS256', zip: true },
   { alg: 'A128KW', enc: 'A128CBC-HS256', zip: 1 },
@@ -222,26 +237,35 @@ describe('JSON Web Encryption Header', () => {
   };
 
   describe('constructor', () => {
-    it.each(invalidAlgs)('should throw when the provided JOSE Header Parameter "alg" is invalid.', (alg) => {
-      expect(() => new JsonWebEncryptionHeader({ ...parameters, alg })).toThrowWithMessage(
-        InvalidJoseHeaderError,
-        'Invalid JOSE Header Parameter "alg".',
-      );
-    });
+    it.each(invalidKeyManagementAlgorithms)(
+      'should throw when the provided JOSE Header Parameter "alg" is invalid.',
+      (alg) => {
+        expect(() => new JsonWebEncryptionHeader({ ...parameters, alg })).toThrowWithMessage(
+          InvalidJoseHeaderError,
+          'Invalid JOSE Header Parameter "alg".',
+        );
+      },
+    );
 
-    it.each(invalidEncs)('should throw when the provided JOSE Header Parameter "enc" is invalid.', (enc) => {
-      expect(() => new JsonWebEncryptionHeader({ ...parameters, enc })).toThrowWithMessage(
-        InvalidJoseHeaderError,
-        'Invalid JOSE Header Parameter "enc".',
-      );
-    });
+    it.each(invalidContentEncryptionAlgorithms)(
+      'should throw when the provided JOSE Header Parameter "enc" is invalid.',
+      (enc) => {
+        expect(() => new JsonWebEncryptionHeader({ ...parameters, enc })).toThrowWithMessage(
+          InvalidJoseHeaderError,
+          'Invalid JOSE Header Parameter "enc".',
+        );
+      },
+    );
 
-    it.each(invalidZips)('should throw when the provided JOSE Header Parameter "zip" is invalid.', (zip) => {
-      expect(() => new JsonWebEncryptionHeader({ ...parameters, zip })).toThrowWithMessage(
-        InvalidJoseHeaderError,
-        'Invalid JOSE Header Parameter "zip".',
-      );
-    });
+    it.each(invalidCompressionAlgorithms)(
+      'should throw when the provided JOSE Header Parameter "zip" is invalid.',
+      (zip) => {
+        expect(() => new JsonWebEncryptionHeader({ ...parameters, zip })).toThrowWithMessage(
+          InvalidJoseHeaderError,
+          'Invalid JOSE Header Parameter "zip".',
+        );
+      },
+    );
 
     it.each(headerAlgorithms)('should return a JSON Web Encryption Header.', (alg, enc) => {
       let header!: JsonWebEncryptionHeader;

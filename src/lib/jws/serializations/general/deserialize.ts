@@ -42,15 +42,15 @@ export async function deserialize(
     headersPromises.push(
       (async () => {
         const { header, protectedHeader, signature, unprotectedHeader } = signatures[i]!;
-        const { expectedDigitalSignatureAlgorithms, jwk } = options.signatures?.[i] ?? {};
+        const signatureOptions = options.signatures?.[i] ?? {};
 
-        if (jwk === null || jwk instanceof JsonWebKey) {
-          header.jsonWebKey = jwk;
+        if (signatureOptions.jsonWebKey === null || signatureOptions.jsonWebKey instanceof JsonWebKey) {
+          header.jsonWebKey = signatureOptions.jsonWebKey;
         }
 
         const { digitalSignatureBackend, jsonWebKey, parameters } = header;
 
-        validateExpectedAlgorithms(expectedDigitalSignatureAlgorithms, parameters);
+        validateExpectedAlgorithms(signatureOptions.expectedDigitalSignatureAlgorithms, parameters);
 
         const encodedProtectedHeader = token.signatures[i]!.protected ?? '';
         const encodedPayload = payload.toString(parameters.b64 === false ? 'utf8' : 'base64url');
@@ -80,7 +80,7 @@ export async function deserialize(
   return { headers: await Promise.all(headersPromises), payload };
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validateOptions(
   options: GeneralJsonWebSignatureDeserializationOptions,
   signatures: GeneralJsonWebSignatureParametersSignature[],
@@ -106,8 +106,12 @@ function validateOptions(
     }
 
     options.signatures.forEach((signatureOptions) => {
-      if ('jwk' in signatureOptions && signatureOptions.jwk !== null && !(signatureOptions.jwk instanceof JsonWebKey)) {
-        throw new TypeError('The provided signature option "jwk" is invalid.');
+      if (
+        'jsonWebKey' in signatureOptions &&
+        signatureOptions.jsonWebKey !== null &&
+        !(signatureOptions.jsonWebKey instanceof JsonWebKey)
+      ) {
+        throw new TypeError('The provided signature option "jsonWebKey" is invalid.');
       }
 
       if (

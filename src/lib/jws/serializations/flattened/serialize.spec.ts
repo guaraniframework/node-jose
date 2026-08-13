@@ -69,7 +69,21 @@ const invalidUnprotectedHeaders: any[] = [
 ];
 
 const invalidSerializeOptions: any[] = [null, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
-const invalidJwks: any[] = [undefined, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, []];
+
+const invalidJsonWebKeys: any[] = [
+  undefined,
+  true,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+];
 
 const invalidDetacheds: any[] = [
   undefined,
@@ -174,7 +188,7 @@ describe('serialize()', () => {
   const payloadWithoutDot = Buffer.from('{"iat": 1723010455, "sub": "078BWDDXasdcg8"}', 'utf8');
   const payloadWithDot = Buffer.from('$.02', 'utf8');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'qDM80igvja4Tg_tNsEuWDhl2bMM6_NgJEldFhIEuwqQ' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'qDM80igvja4Tg_tNsEuWDhl2bMM6_NgJEldFhIEuwqQ' });
 
   it.each(invalidPayloads)('should throw when the provided Payload is invalid.', async (payload) => {
     await expect(
@@ -245,10 +259,10 @@ describe('serialize()', () => {
     ).rejects.toThrowWithMessage(TypeError, 'The provided options is invalid.');
   });
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader, unprotectedHeader }, { jwk }),
-    ).rejects.toThrowWithMessage(TypeError, 'The provided option "jwk" is invalid.');
+      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader, unprotectedHeader }, { jsonWebKey }),
+    ).rejects.toThrowWithMessage(TypeError, 'The provided option "jsonWebKey" is invalid.');
   });
 
   it.each(invalidDetacheds)('should throw when the provided option "detached" is invalid.', async (detached) => {
@@ -264,25 +278,25 @@ describe('serialize()', () => {
     );
 
     await expect(
-      serialize(payloadWithDot, { protectedHeader: unencodedProtectedHeader }, { jwk, detached: false }),
+      serialize(payloadWithDot, { protectedHeader: unencodedProtectedHeader }, { jsonWebKey, detached: false }),
     ).rejects.toThrowWithMessage(InvalidJsonWebSignatureError, 'The provided Unencoded Payload cannot be serialized.');
   });
 
   it('should serialize a Flattened JSON Web Signature Protected Attached Unencoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: unencodedProtectedHeader }, { jwk }),
+      serialize(payloadWithoutDot, { protectedHeader: unencodedProtectedHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(unencodedProtectedAttachedTokenWithoutDot);
   });
 
   it('should serialize a Flattened JSON Web Signature Protected and Unprotected Attached Unencoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: unencodedProtectedHeader, unprotectedHeader }, { jwk }),
+      serialize(payloadWithoutDot, { protectedHeader: unencodedProtectedHeader, unprotectedHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(unencodedFullAttachedTokenWithoutDot);
   });
 
   it('should serialize a Flattened JSON Web Signature Protected Detached Unencoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: unencodedProtectedHeader }, { jwk, detached: true }),
+      serialize(payloadWithoutDot, { protectedHeader: unencodedProtectedHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(unencodedProtectedDetachedTokenWithoutDot);
   });
 
@@ -291,14 +305,14 @@ describe('serialize()', () => {
       serialize(
         payloadWithoutDot,
         { protectedHeader: unencodedProtectedHeader, unprotectedHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(unencodedFullDetachedTokenWithoutDot);
   });
 
   it('should serialize a Flattened JSON Web Signature Protected Detached Unencoded Token with a dot.', async () => {
     await expect(
-      serialize(payloadWithDot, { protectedHeader: unencodedProtectedHeader }, { jwk, detached: true }),
+      serialize(payloadWithDot, { protectedHeader: unencodedProtectedHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(unencodedProtectedDetachedTokenWithDot);
   });
 
@@ -307,32 +321,36 @@ describe('serialize()', () => {
       serialize(
         payloadWithDot,
         { protectedHeader: unencodedProtectedHeader, unprotectedHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(unencodedFullDetachedTokenWithDot);
   });
 
   it('should serialize a Flattened JSON Web Signature Protected Attached Encoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader }, { jwk }),
+      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(encodedProtectedAttachedToken);
   });
 
   it('should serialize a Flattened JSON Web Signature Unprotected Attached Encoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { unprotectedHeader: { ...encodedProtectedHeader, ...unprotectedHeader } }, { jwk }),
+      serialize(
+        payloadWithoutDot,
+        { unprotectedHeader: { ...encodedProtectedHeader, ...unprotectedHeader } },
+        { jsonWebKey },
+      ),
     ).resolves.toStrictEqual(encodedUnprotectedAttachedToken);
   });
 
   it('should serialize a Flattened JSON Web Signature Protected and Unprotected Attached Encoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader, unprotectedHeader }, { jwk }),
+      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader, unprotectedHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(encodedFullAttachedToken);
   });
 
   it('should serialize a Flattened JSON Web Signature Protected Detached Encoded Token without a dot.', async () => {
     await expect(
-      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader }, { jwk, detached: true }),
+      serialize(payloadWithoutDot, { protectedHeader: encodedProtectedHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(encodedProtectedDetachedToken);
   });
 
@@ -341,7 +359,7 @@ describe('serialize()', () => {
       serialize(
         payloadWithoutDot,
         { unprotectedHeader: { ...encodedProtectedHeader, ...unprotectedHeader } },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(encodedUnprotectedDetachedToken);
   });
@@ -351,7 +369,7 @@ describe('serialize()', () => {
       serialize(
         payloadWithoutDot,
         { protectedHeader: encodedProtectedHeader, unprotectedHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(encodedFullDetachedToken);
   });

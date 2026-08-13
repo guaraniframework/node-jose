@@ -112,9 +112,7 @@ export abstract class JsonWebKey {
    * NodeJS Crypto Key.
    */
   public set cryptoKey(cryptoKey: KeyObject) {
-    if (typeof this.#cryptoKey === 'undefined') {
-      this.#cryptoKey = cryptoKey;
-    }
+    this.#cryptoKey = cryptoKey;
   }
 
   /**
@@ -132,9 +130,7 @@ export abstract class JsonWebKey {
    * JSON Web Key X.509 Certificate Chain.
    */
   public set certificateChain(certificateChain: X509Certificate[] | null) {
-    if (typeof this.#certificateChain === 'undefined') {
-      this.#certificateChain = certificateChain;
-    }
+    this.#certificateChain = certificateChain;
   }
 
   /**

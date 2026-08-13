@@ -26,7 +26,7 @@ const invalidJsonWebKeys: any[] = [
 describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
   const message = Buffer.from('Super secret message.', 'utf8');
 
-  const publicJwk = new RsaJsonWebKey({
+  const publicJsonWebKey = new RsaJsonWebKey({
     kty: 'RSA',
     n:
       'xjpFydzTbByzL5jhEa2yQO63dpS9d9SKaN107AR69skKiTR4uK1c4SzDt4YcurDB' +
@@ -38,8 +38,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     e: 'AQAB',
   });
 
-  const privateJwk = new RsaJsonWebKey({
-    ...publicJwk.parameters,
+  const privateJsonWebKey = new RsaJsonWebKey({
+    ...publicJsonWebKey.parameters,
     d:
       'cc2YrWia9LGRad0SMe0PrlmeeHSyRe5-u--QJcP4uF_5LYYzXIsjDJ9_iYh0S_YY' +
       'e6bLjqHOSp44OHvJqoXMX5j3-ECKnNjnUHMtRB2awXGBqBOhB8TqoQXgmXDi1jx_' +
@@ -69,7 +69,7 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       '6590ySgbH81pEM8FQW1JBATz0MYtUNZAt8N360vayE4',
   });
 
-  const wrongAlgJwk = new RsaJsonWebKey({
+  const wrongAlgJsonWebKey = new RsaJsonWebKey({
     kty: 'RSA',
     n:
       'xjpFydzTbByzL5jhEa2yQO63dpS9d9SKaN107AR69skKiTR4uK1c4SzDt4YcurDB' +
@@ -82,7 +82,7 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     alg: 'ECDH-ES',
   });
 
-  const wrongKtyJwk = new EllipticCurveJsonWebKey({
+  const wrongKtyJsonWebKey = new EllipticCurveJsonWebKey({
     kty: 'EC',
     crv: 'P-256',
     x: '4c_cS6IT6jaVQeobt_6BDCTmzBaBOTmmiSCpjd5a6Og',
@@ -93,7 +93,7 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
   const wrongSignature = Buffer.from('APwj7CgHdXxQsdUFm-JpLib8ufFZMWM0JeG7OboIhKc', 'base64url');
   const wrongMessage = Buffer.from('Bad message.', 'utf8');
 
-  const wrongJwk = new RsaJsonWebKey({
+  const wrongJsonWebKey = new RsaJsonWebKey({
     kty: 'RSA',
     n:
       'oZ9ANo0w0XDqLw29D7ZM_Qd8fR-6B_3l-MZ0CLikkfz71ivN28vm8hR4FIQJZAzR' +
@@ -119,8 +119,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -128,28 +128,28 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.sign(message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.sign(message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.sign(message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to sign a Message.',
         );
       });
 
       it('should sign the provided Message.', async () => {
-        await expect(async () => (signature = await backend.sign(message, privateJwk))).resolves.not.toThrow();
+        await expect(async () => (signature = await backend.sign(message, privateJsonWebKey))).resolves.not.toThrow();
 
         expect(signature).toBeInstanceOf(Buffer);
         expect(signature).not.toBeEmpty();
@@ -159,8 +159,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -168,42 +168,42 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.verify(signature, message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.verify(signature, message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided Message is invalid.', async () => {
-        await expect(backend.verify(signature, wrongMessage, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, wrongMessage, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.verify(signature, message, wrongJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, publicJwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, publicJsonWebKey)).resolves.not.toThrow();
       });
     });
   });
@@ -222,8 +222,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -231,28 +231,28 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.sign(message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.sign(message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.sign(message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to sign a Message.',
         );
       });
 
       it('should sign the provided Message.', async () => {
-        await expect(async () => (signature = await backend.sign(message, privateJwk))).resolves.not.toThrow();
+        await expect(async () => (signature = await backend.sign(message, privateJsonWebKey))).resolves.not.toThrow();
 
         expect(signature).toBeInstanceOf(Buffer);
         expect(signature).not.toBeEmpty();
@@ -262,8 +262,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -271,42 +271,42 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.verify(signature, message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.verify(signature, message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided Message is invalid.', async () => {
-        await expect(backend.verify(signature, wrongMessage, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, wrongMessage, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.verify(signature, message, wrongJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, publicJwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, publicJsonWebKey)).resolves.not.toThrow();
       });
     });
   });
@@ -325,8 +325,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -334,28 +334,28 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.sign(message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.sign(message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.sign(message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to sign a Message.',
         );
       });
 
       it('should sign the provided Message.', async () => {
-        await expect(async () => (signature = await backend.sign(message, privateJwk))).resolves.not.toThrow();
+        await expect(async () => (signature = await backend.sign(message, privateJsonWebKey))).resolves.not.toThrow();
 
         expect(signature).toBeInstanceOf(Buffer);
         expect(signature).not.toBeEmpty();
@@ -365,8 +365,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -374,42 +374,42 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.verify(signature, message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.verify(signature, message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided Message is invalid.', async () => {
-        await expect(backend.verify(signature, wrongMessage, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, wrongMessage, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.verify(signature, message, wrongJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, publicJwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, publicJsonWebKey)).resolves.not.toThrow();
       });
     });
   });
@@ -428,8 +428,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -437,28 +437,28 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.sign(message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.sign(message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.sign(message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to sign a Message.',
         );
       });
 
       it('should sign the provided Message.', async () => {
-        await expect(async () => (signature = await backend.sign(message, privateJwk))).resolves.not.toThrow();
+        await expect(async () => (signature = await backend.sign(message, privateJsonWebKey))).resolves.not.toThrow();
 
         expect(signature).toBeInstanceOf(Buffer);
         expect(signature).not.toBeEmpty();
@@ -468,8 +468,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -477,42 +477,42 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.verify(signature, message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.verify(signature, message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided Message is invalid.', async () => {
-        await expect(backend.verify(signature, wrongMessage, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, wrongMessage, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.verify(signature, message, wrongJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, publicJwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, publicJsonWebKey)).resolves.not.toThrow();
       });
     });
   });
@@ -531,8 +531,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -540,28 +540,28 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.sign(message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.sign(message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.sign(message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to sign a Message.',
         );
       });
 
       it('should sign the provided Message.', async () => {
-        await expect(async () => (signature = await backend.sign(message, privateJwk))).resolves.not.toThrow();
+        await expect(async () => (signature = await backend.sign(message, privateJsonWebKey))).resolves.not.toThrow();
 
         expect(signature).toBeInstanceOf(Buffer);
         expect(signature).not.toBeEmpty();
@@ -571,8 +571,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -580,42 +580,42 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.verify(signature, message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.verify(signature, message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided Message is invalid.', async () => {
-        await expect(backend.verify(signature, wrongMessage, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, wrongMessage, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.verify(signature, message, wrongJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, publicJwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, publicJsonWebKey)).resolves.not.toThrow();
       });
     });
   });
@@ -634,8 +634,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('sign()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.sign(message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.sign(message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -643,28 +643,28 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.sign(message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.sign(message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided JSON Web Key is not a Private Key.', async () => {
-        await expect(backend.sign(message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.sign(message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used to sign a Message.',
         );
       });
 
       it('should sign the provided Message.', async () => {
-        await expect(async () => (signature = await backend.sign(message, privateJwk))).resolves.not.toThrow();
+        await expect(async () => (signature = await backend.sign(message, privateJsonWebKey))).resolves.not.toThrow();
 
         expect(signature).toBeInstanceOf(Buffer);
         expect(signature).not.toBeEmpty();
@@ -674,8 +674,8 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
     describe('verify()', () => {
       it.each(invalidJsonWebKeys)(
         'should throw when the provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
-        async (jwk) => {
-          await expect(backend.verify(signature, message, jwk)).rejects.toThrowWithMessage(
+        async (jsonWebKey) => {
+          await expect(backend.verify(signature, message, jsonWebKey)).rejects.toThrowWithMessage(
             InvalidJsonWebKeyError,
             'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
           );
@@ -683,42 +683,42 @@ describe('RSASSA JSON Web Signature Digital Signature Backend.', () => {
       );
 
       it('should throw when the provided JSON Web Key Parameter "alg" does not match the JSON Web Signature Algorithm.', async () => {
-        await expect(backend.verify(signature, message, wrongAlgJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongAlgJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The provided JSON Web Key cannot be used by the JSON Web Signature Algorithm.',
         );
       });
 
       it('should throw when the provided JSON Web Key Parameter "kty" does not match the required JSON Web Key Key Type.', async () => {
-        await expect(backend.verify(signature, message, <any>wrongKtyJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, <any>wrongKtyJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebKeyError,
           'The JSON Web Signature Algorithm only accepts "RSA" JSON Web Keys.',
         );
       });
 
       it('should throw when the provided Signature is invalid.', async () => {
-        await expect(backend.verify(wrongSignature, message, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(wrongSignature, message, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided Message is invalid.', async () => {
-        await expect(backend.verify(signature, wrongMessage, publicJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, wrongMessage, publicJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should throw when the provided JSON Web Key is invalid.', async () => {
-        await expect(backend.verify(signature, message, wrongJwk)).rejects.toThrowWithMessage(
+        await expect(backend.verify(signature, message, wrongJsonWebKey)).rejects.toThrowWithMessage(
           InvalidJsonWebSignatureError,
           'The provided JSON Web Signature is invalid.',
         );
       });
 
       it('should not throw when the provided Signature matches the provided Message.', async () => {
-        await expect(backend.verify(signature, message, publicJwk)).resolves.not.toThrow();
+        await expect(backend.verify(signature, message, publicJsonWebKey)).resolves.not.toThrow();
       });
     });
   });

@@ -21,9 +21,23 @@ const invalidDeserializeOptions: any[] = [
   [],
 ];
 
-const invalidJwks: any[] = [undefined, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, {}, []];
+const invalidJsonWebKeys: any[] = [
+  undefined,
+  true,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+];
 
 const invalidExpectedAlgorithms: any[] = [
+  undefined,
   null,
   true,
   1,
@@ -39,7 +53,20 @@ const invalidExpectedAlgorithms: any[] = [
   ['a'],
 ];
 
-const invalidDetachedPayloads: any[] = [null, true, 1, 1.2, 1n, Symbol('a'), Buffer, () => 1, {}, [], Buffer.alloc(0)];
+const invalidDetachedPayloads: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  Symbol('a'),
+  Buffer,
+  () => 1,
+  {},
+  [],
+  Buffer.alloc(0),
+];
 
 const invalidTokens: any[] = [
   undefined,
@@ -87,7 +114,7 @@ describe('deserialize()', () => {
   const payloadWithoutDot = Buffer.from('{"iat": 1723010455, "sub": "078BWDDXasdcg8"}', 'utf8');
   const payloadWithDot = Buffer.from('$.02', 'utf8');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'qDM80igvja4Tg_tNsEuWDhl2bMM6_NgJEldFhIEuwqQ' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'qDM80igvja4Tg_tNsEuWDhl2bMM6_NgJEldFhIEuwqQ' });
 
   it.each(invalidDeserializeOptions)('should throw when the provided options is invalid.', async (options) => {
     await expect(deserialize(encodedAttachedToken, options)).rejects.toThrowWithMessage(
@@ -96,10 +123,10 @@ describe('deserialize()', () => {
     );
   });
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
-    await expect(deserialize(encodedAttachedToken, { jwk })).rejects.toThrowWithMessage(
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
+    await expect(deserialize(encodedAttachedToken, { jsonWebKey })).rejects.toThrowWithMessage(
       TypeError,
-      'The provided option "jwk" is invalid.',
+      'The provided option "jsonWebKey" is invalid.',
     );
   });
 
@@ -156,71 +183,77 @@ describe('deserialize()', () => {
   });
 
   it('should throw when the provided Signature fails to deserialize the provided Compact JSON Web Signature Token.', async () => {
-    await expect(deserialize(wrongSignatureToken, { jwk })).rejects.toThrow();
+    await expect(deserialize(wrongSignatureToken, { jsonWebKey })).rejects.toThrow();
   });
 
   it('should return the deserialized Compact JSON Web Signature from an Attached Unencoded Compact JSON Web Signature Token without a dot.', async () => {
-    let jws!: CompactJsonWebSignature;
+    let jsonWebSignature!: CompactJsonWebSignature;
 
     await expect(async () => {
-      jws = await deserialize(unencodedAttachedTokenWithoutDot, { jwk });
+      jsonWebSignature = await deserialize(unencodedAttachedTokenWithoutDot, { jsonWebKey });
     }).resolves.not.toThrow();
 
-    expect(jws.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
-    expect(jws.protectedHeader.parameters).toStrictEqual(unencodedProtectedHeader);
-    expect(jws.payload).toStrictEqual(payloadWithoutDot);
+    expect(jsonWebSignature.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
+    expect(jsonWebSignature.protectedHeader.parameters).toStrictEqual(unencodedProtectedHeader);
+    expect(jsonWebSignature.payload).toStrictEqual(payloadWithoutDot);
   });
 
   it('should return the deserialized Compact JSON Web Signature from a Detached Unencoded Compact JSON Web Signature Token without a dot.', async () => {
-    let jws!: CompactJsonWebSignature;
+    let jsonWebSignature!: CompactJsonWebSignature;
 
     await expect(async () => {
-      jws = await deserialize(unencodedDetachedTokenWithoutDot, { jwk, detachedPayload: payloadWithoutDot });
+      jsonWebSignature = await deserialize(unencodedDetachedTokenWithoutDot, {
+        jsonWebKey,
+        detachedPayload: payloadWithoutDot,
+      });
     }).resolves.not.toThrow();
 
-    expect(jws.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
-    expect(jws.protectedHeader.parameters).toStrictEqual(unencodedProtectedHeader);
-    expect(jws.payload).toStrictEqual(payloadWithoutDot);
+    expect(jsonWebSignature.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
+    expect(jsonWebSignature.protectedHeader.parameters).toStrictEqual(unencodedProtectedHeader);
+    expect(jsonWebSignature.payload).toStrictEqual(payloadWithoutDot);
   });
 
   it('should return the deserialized Compact JSON Web Signature from a Detached Unencoded Compact JSON Web Signature Token with a dot.', async () => {
-    let jws!: CompactJsonWebSignature;
+    let jsonWebSignature!: CompactJsonWebSignature;
 
-    const jwk = new OctetSequenceJsonWebKey({
+    const jsonWebKey = new OctetSequenceJsonWebKey({
       kty: 'oct',
       k: 'AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow',
     });
 
     await expect(async () => {
-      jws = await deserialize(unencodedDetachedTokenWithDot, { jwk, detachedPayload: payloadWithDot });
+      jsonWebSignature = await deserialize(unencodedDetachedTokenWithDot, {
+        jsonWebKey,
+        detachedPayload: payloadWithDot,
+      });
     }).resolves.not.toThrow();
 
-    expect(jws.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
-    expect(jws.protectedHeader.parameters).toStrictEqual(unencodedProtectedHeader);
-    expect(jws.payload).toStrictEqual(payloadWithDot);
+    expect(jsonWebSignature.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
+    expect(jsonWebSignature.protectedHeader.parameters).toStrictEqual(unencodedProtectedHeader);
+    expect(jsonWebSignature.payload).toStrictEqual(payloadWithDot);
   });
 
   it('should return the deserialized Compact JSON Web Signature from an Attached Encoded Compact JSON Web Signature Token without a dot.', async () => {
-    let jws!: CompactJsonWebSignature;
+    let jsonWebSignature!: CompactJsonWebSignature;
 
     await expect(async () => {
-      jws = await deserialize(encodedAttachedToken, { jwk });
+      jsonWebSignature = await deserialize(encodedAttachedToken, { jsonWebKey });
     }).resolves.not.toThrow();
 
-    expect(jws.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
-    expect(jws.protectedHeader.parameters).toStrictEqual(encodedProtectedHeader);
-    expect(jws.payload).toStrictEqual(payloadWithoutDot);
+    expect(jsonWebSignature.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
+    expect(jsonWebSignature.protectedHeader.parameters).toStrictEqual(encodedProtectedHeader);
+    expect(jsonWebSignature.payload).toStrictEqual(payloadWithoutDot);
   });
 
   it('should return the deserialized Compact JSON Web Signature from a Detached Encoded Compact JSON Web Signature Token without a dot.', async () => {
-    let jws!: CompactJsonWebSignature;
+    let jsonWebSignature!: CompactJsonWebSignature;
 
     await expect(async () => {
-      jws = await deserialize(encodedDetachedToken, { jwk, detachedPayload: payloadWithoutDot });
+      jsonWebSignature = await deserialize(encodedDetachedToken, { jsonWebKey, detachedPayload: payloadWithoutDot });
     }).resolves.not.toThrow();
 
-    expect(jws.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
-    expect(jws.protectedHeader.parameters).toStrictEqual(encodedProtectedHeader);
-    expect(jws.payload).toStrictEqual(payloadWithoutDot);
+    expect(jsonWebSignature.protectedHeader).toBeInstanceOf(JsonWebSignatureHeader);
+    expect(jsonWebSignature.protectedHeader.parameters).toStrictEqual(encodedProtectedHeader);
+    expect(jsonWebSignature.payload).toStrictEqual(payloadWithoutDot);
   });
 });

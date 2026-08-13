@@ -16,12 +16,12 @@ export abstract class JsonWebEncryptionContentEncryptionBackend {
   /**
    * Size of the Content Encryption Key in bytes.
    */
-  public readonly cekSize: number;
+  public readonly contentEncryptionKeySize: number;
 
   /**
    * Size of the Initialization Vector in bytes.
    */
-  public readonly ivSize: number;
+  public readonly initializationVectorSize: number;
 
   /**
    * JSON Web Encryption Content Encryption Algorithm.
@@ -35,39 +35,54 @@ export abstract class JsonWebEncryptionContentEncryptionBackend {
    * Instantiates a new JSON Web Encryption Content Encryption Backend.
    *
    * @param algorithm JSON Web Encryption Content Encryption Algorithm.
-   * @param cekSize Size of the Content Encryption Key in bytes.
-   * @param ivSize Size of the Initialization Vector in bytes.
+   * @param contentEncryptionKeySize Size of the Content Encryption Key in bytes.
+   * @param initializationVectorSize Size of the Initialization Vector in bytes.
    */
-  public constructor(algorithm: ContentEncryptionAlgorithm, cekSize: number, ivSize: number) {
+  public constructor(
+    algorithm: ContentEncryptionAlgorithm,
+    contentEncryptionKeySize: number,
+    initializationVectorSize: number,
+  ) {
     this.algorithm = algorithm;
-    this.cekSize = cekSize;
-    this.ivSize = ivSize;
+    this.contentEncryptionKeySize = contentEncryptionKeySize;
+    this.initializationVectorSize = initializationVectorSize;
   }
 
   /**
    * Encrypts the provided Plaintext and Additional Authenticated Data.
    *
    * @param plaintext Plaintext to be encrypted.
-   * @param cek Content Encryption Key.
-   * @param aad Additional Authenticated Data.
-   * @param iv Initialization Vector.
+   * @param contentEncryptionKey Content Encryption Key.
+   * @param additionalAuthenticatedData Additional Authenticated Data.
+   * @param initializationVector Initialization Vector.
    * @throws {InvalidJsonWebEncryptionError} Failed to encrypt the provided Plaintext.
    * @returns Ciphertext and Authentication Tag.
    */
-  public abstract encrypt(plaintext: Buffer, cek: Buffer, aad: Buffer, iv: Buffer): Promise<[Buffer, Buffer]>;
+  public abstract encrypt(
+    plaintext: Buffer,
+    contentEncryptionKey: Buffer,
+    additionalAuthenticatedData: Buffer,
+    initializationVector: Buffer,
+  ): Promise<[Buffer, Buffer]>;
 
   /**
    * Decrypts the provided Ciphertext.
    *
    * @param ciphertext Ciphertext to be decrypted.
-   * @param cek Content Encryption Key.
-   * @param aad Additional Authenticated Data.
-   * @param iv Initialization Vector.
-   * @param tag Authentication Tag.
+   * @param contentEncryptionKey Content Encryption Key.
+   * @param additionalAuthenticatedData Additional Authenticated Data.
+   * @param initializationVector Initialization Vector.
+   * @param authenticationTag Authentication Tag.
    * @throws {InvalidJsonWebEncryptionError} Failed to decrypt the provided Ciphertext.
    * @returns Plaintext.
    */
-  public abstract decrypt(ciphertext: Buffer, cek: Buffer, aad: Buffer, iv: Buffer, tag: Buffer): Promise<Buffer>;
+  public abstract decrypt(
+    ciphertext: Buffer,
+    contentEncryptionKey: Buffer,
+    additionalAuthenticatedData: Buffer,
+    initializationVector: Buffer,
+    authenticationTag: Buffer,
+  ): Promise<Buffer>;
 
   /**
    * Generates a new Initialization Vector.
@@ -75,17 +90,17 @@ export abstract class JsonWebEncryptionContentEncryptionBackend {
    * @returns Generated Initialization Vector.
    */
   public async generateInitializationVector(): Promise<Buffer> {
-    return await randomBytesAsync(this.ivSize);
+    return await randomBytesAsync(this.initializationVectorSize);
   }
 
   /**
    * Checks if the provided Content Encryption Key can be used.
    *
-   * @param cek Content Encryption Key to be checked.
+   * @param contentEncryptionKey Content Encryption Key to be checked.
    * @throws {InvalidJsonWebEncryptionError} The provided Content Encryption Key is invalid.
    */
-  protected validateContentEncryptionKey(cek: Buffer): void {
-    if (cek.length !== this.cekSize) {
+  protected validateContentEncryptionKey(contentEncryptionKey: Buffer): void {
+    if (contentEncryptionKey.length !== this.contentEncryptionKeySize) {
       throw new InvalidJsonWebEncryptionError('The provided Content Encryption Key is invalid.');
     }
   }
@@ -93,11 +108,11 @@ export abstract class JsonWebEncryptionContentEncryptionBackend {
   /**
    * Checks if the provided Initialization Vector can be used.
    *
-   * @param iv Initialization Vector to be checked.
+   * @param initializationVector Initialization Vector to be checked.
    * @throws {InvalidJsonWebEncryptionError} The provided Initialization Vector is invalid.
    */
-  protected validateInitializationVector(iv: Buffer): void {
-    if (iv.length !== this.ivSize) {
+  protected validateInitializationVector(initializationVector: Buffer): void {
+    if (initializationVector.length !== this.initializationVectorSize) {
       throw new InvalidJsonWebEncryptionError('The provided Initialization Vector is invalid.');
     }
   }

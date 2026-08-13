@@ -4,7 +4,7 @@ import type https from 'https';
 import { jsonParse } from '@guarani/primitives';
 
 import { InvalidJsonWebKeySetError } from '../errors/invalid-jsonwebkeyset.error';
-import { createJsonWebKeySet } from '../jwks/create-jsonwebkeyset';
+import { create } from '../jwks/create';
 import { JsonWebKeySet } from '../jwks/jsonwebkeyset';
 
 /**
@@ -25,7 +25,7 @@ export async function getJsonWebKeySetFromUrl(url: string): Promise<JsonWebKeySe
 
       response.on('end', async () => {
         try {
-          return resolve(await createJsonWebKeySet(jsonParse(data)));
+          return resolve(await create(jsonParse(data)));
         } catch (error: unknown) {
           return reject(
             new InvalidJsonWebKeySetError('Failed to parse a JSON Web Key Set from the provided URL.', {

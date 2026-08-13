@@ -32,10 +32,9 @@ export async function serialize(
 
   const header = await createJsonWebEncryptionHeader(protectedHeader);
 
-  const { detached, jwk } = options;
   const { compressionBackend, contentEncryptionBackend, keyManagementBackend, parameters } = header;
 
-  const jsonWebKey = jwk ?? header.jsonWebKey!;
+  const jsonWebKey = options.jsonWebKey ?? header.jsonWebKey!;
 
   const contentEncryptionKey = await keyManagementBackend.generateContentEncryptionKey(jsonWebKey, header);
   const encryptedKey = await keyManagementBackend.wrap(contentEncryptionKey, jsonWebKey, header);
@@ -65,12 +64,12 @@ export async function serialize(
     encodedProtectedHeader,
     encodedEncryptedKey,
     encodedInitializationVector,
-    detached === true ? '' : encodedCiphertext,
+    options.detached === true ? '' : encodedCiphertext,
     encodedAuthenticationTag,
   ].join('.');
 }
 
-// #region Helper Methods.
+// #region Helper Methods
 function validatePlaintext(plaintext: Buffer): void {
   if (!Buffer.isBuffer(plaintext) || plaintext.byteLength === 0) {
     throw new TypeError('The provided Plaintext is invalid.');
@@ -88,8 +87,8 @@ function validateOptions(options: CompactJsonWebEncryptionSerializationOptions):
     throw new TypeError('The provided options is invalid.');
   }
 
-  if ('jwk' in options && !(options.jwk instanceof JsonWebKey)) {
-    throw new TypeError('The provided option "jwk" is invalid.');
+  if ('jsonWebKey' in options && !(options.jsonWebKey instanceof JsonWebKey)) {
+    throw new TypeError('The provided option "jsonWebKey" is invalid.');
   }
 
   if ('detached' in options && typeof options.detached !== 'boolean') {

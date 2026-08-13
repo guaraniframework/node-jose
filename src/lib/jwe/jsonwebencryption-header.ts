@@ -137,7 +137,7 @@ export class JsonWebEncryptionHeader<
     }
   }
 
-  // #region Private Methods.
+  // #region Private Methods
   private static getKeyManagementBackend(
     parameters: JsonWebEncryptionHeaderParameters,
   ): JsonWebEncryptionKeyManagementBackend {

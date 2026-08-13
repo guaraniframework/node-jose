@@ -97,7 +97,7 @@ const repeatedJoseHeaderParameters: Partial<JsonWebEncryptionHeaderParameters>[]
 
 const invalidSerializeOptions: any[] = [null, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
 
-const invalidAads: any[] = [
+const invalidAdditionalAuthenticatedData: any[] = [
   undefined,
   null,
   true,
@@ -113,7 +113,7 @@ const invalidAads: any[] = [
   Buffer.alloc(0),
 ];
 
-const invalidJwks: any[] = [
+const invalidJsonWebKeys: any[] = [
   undefined,
   null,
   true,
@@ -759,13 +759,13 @@ describe('serialize()', () => {
   const initializationVector = Buffer.from('AxY8DCtDaGlsbGljb3RoZQ', 'base64url');
   const additionalAuthenticatedData = Buffer.from('YWRkaXRpb25hbF9hdXRoZW50aWNhdGVkX2RhdGE', 'base64url');
 
-  const jwk = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
+  const jsonWebKey = new OctetSequenceJsonWebKey({ kty: 'oct', k: 'GawgguFyGrWKav7AX4VKUg', kid: '7' });
 
   beforeEach(() => {
     https.get = jest.fn().mockImplementation((_, cb) => {
       const stream = new Stream();
       cb(stream);
-      stream.emit('data', jsonStringify({ keys: [jwk.parameters] }));
+      stream.emit('data', jsonStringify({ keys: [jsonWebKey.parameters] }));
       stream.emit('end');
     });
   });
@@ -868,24 +868,27 @@ describe('serialize()', () => {
     ).rejects.toThrowWithMessage(TypeError, 'The provided options is invalid.');
   });
 
-  it.each(invalidAads)('should throw when the provided option "aad" is invalid.', async (aad) => {
-    await expect(
-      serialize(
-        plaintext,
-        { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
-        { aad },
-      ),
-    ).rejects.toThrowWithMessage(TypeError, 'The provided option "aad" is invalid.');
-  });
+  it.each(invalidAdditionalAuthenticatedData)(
+    'should throw when the provided option "additionalAuthenticatedData" is invalid.',
+    async (additionalAuthenticatedData) => {
+      await expect(
+        serialize(
+          plaintext,
+          { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
+          { additionalAuthenticatedData },
+        ),
+      ).rejects.toThrowWithMessage(TypeError, 'The provided option "additionalAuthenticatedData" is invalid.');
+    },
+  );
 
-  it.each(invalidJwks)('should throw when the provided option "jwk" is invalid.', async (jwk) => {
+  it.each(invalidJsonWebKeys)('should throw when the provided option "jsonWebKey" is invalid.', async (jsonWebKey) => {
     await expect(
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
-        { jwk },
+        { jsonWebKey },
       ),
-    ).rejects.toThrowWithMessage(TypeError, 'The provided option "jwk" is invalid.');
+    ).rejects.toThrowWithMessage(TypeError, 'The provided option "jsonWebKey" is invalid.');
   });
 
   it.each(invalidDetacheds)('should throw when the provided option "detached" is invalid.', async (detached) => {
@@ -905,38 +908,42 @@ describe('serialize()', () => {
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Protected Attached Token with no Additional Authenticated Data.', async () => {
-    await expect(serialize(plaintext, { protectedHeader: algEncJkuKidHeader }, { jwk })).resolves.toStrictEqual(
+    await expect(serialize(plaintext, { protectedHeader: algEncJkuKidHeader }, { jsonWebKey })).resolves.toStrictEqual(
       uncompressedProtectedAttachedTokenNoAad,
     );
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Unprotected Attached Token with no Additional Authenticated Data.', async () => {
-    await expect(serialize(plaintext, { unprotectedHeader: algEncJkuKidHeader }, { jwk })).resolves.toStrictEqual(
-      uncompressedUnprotectedAttachedTokenNoAad,
-    );
+    await expect(
+      serialize(plaintext, { unprotectedHeader: algEncJkuKidHeader }, { jsonWebKey }),
+    ).resolves.toStrictEqual(uncompressedUnprotectedAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Recipient Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { recipientUnprotectedHeader: algEncJkuKidHeader }, { jwk }),
+      serialize(plaintext, { recipientUnprotectedHeader: algEncJkuKidHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(uncompressedRecipientAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Protected and Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: encHeader, unprotectedHeader: algJkuKidHeader }, { jwk }),
+      serialize(plaintext, { protectedHeader: encHeader, unprotectedHeader: algJkuKidHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(uncompressedProtectedAndUnprotectedAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Protected and Recipient Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader }, { jwk }),
+      serialize(plaintext, { protectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(uncompressedProtectedAndRecipientAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Unprotected and Recipient Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { unprotectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader }, { jwk }),
+      serialize(
+        plaintext,
+        { unprotectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
+        { jsonWebKey },
+      ),
     ).resolves.toStrictEqual(uncompressedUnprotectedAndRecipientAttachedTokenNoAad);
   });
 
@@ -945,32 +952,36 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
-        { jwk },
+        { jsonWebKey },
       ),
     ).resolves.toStrictEqual(uncompressedFullAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Protected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: algEncJkuKidHeader }, { jwk, detached: true }),
+      serialize(plaintext, { protectedHeader: algEncJkuKidHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(uncompressedProtectedDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Unprotected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { unprotectedHeader: algEncJkuKidHeader }, { jwk, detached: true }),
+      serialize(plaintext, { unprotectedHeader: algEncJkuKidHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(uncompressedUnprotectedDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Recipient Unprotected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { recipientUnprotectedHeader: algEncJkuKidHeader }, { jwk, detached: true }),
+      serialize(plaintext, { recipientUnprotectedHeader: algEncJkuKidHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(uncompressedRecipientDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Protected and Unprotected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: encHeader, unprotectedHeader: algJkuKidHeader }, { jwk, detached: true }),
+      serialize(
+        plaintext,
+        { protectedHeader: encHeader, unprotectedHeader: algJkuKidHeader },
+        { jsonWebKey, detached: true },
+      ),
     ).resolves.toStrictEqual(uncompressedProtectedAndUnprotectedDetachedTokenNoAad);
   });
 
@@ -979,7 +990,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedProtectedAndRecipientDetachedTokenNoAad);
   });
@@ -989,7 +1000,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedUnprotectedAndRecipientDetachedTokenNoAad);
   });
@@ -999,44 +1010,52 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedFullDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Protected Attached Token with no Additional Authenticated Data.', async () => {
-    await expect(serialize(plaintext, { protectedHeader: algEncZipJkuKidHeader }, { jwk })).resolves.toStrictEqual(
-      compressedProtectedAttachedTokenNoAad,
-    );
+    await expect(
+      serialize(plaintext, { protectedHeader: algEncZipJkuKidHeader }, { jsonWebKey }),
+    ).resolves.toStrictEqual(compressedProtectedAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Unprotected Attached Token with no Additional Authenticated Data.', async () => {
-    await expect(serialize(plaintext, { unprotectedHeader: algEncZipJkuKidHeader }, { jwk })).resolves.toStrictEqual(
-      compressedUnprotectedAttachedTokenNoAad,
-    );
+    await expect(
+      serialize(plaintext, { unprotectedHeader: algEncZipJkuKidHeader }, { jsonWebKey }),
+    ).resolves.toStrictEqual(compressedUnprotectedAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Recipient Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { recipientUnprotectedHeader: algEncZipJkuKidHeader }, { jwk }),
+      serialize(plaintext, { recipientUnprotectedHeader: algEncZipJkuKidHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(compressedRecipientAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Protected and Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: encHeader, unprotectedHeader: algZipJkuKidHeader }, { jwk }),
+      serialize(plaintext, { protectedHeader: encHeader, unprotectedHeader: algZipJkuKidHeader }, { jsonWebKey }),
     ).resolves.toStrictEqual(compressedProtectedAndUnprotectedAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Protected and Recipient Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader }, { jwk }),
+      serialize(
+        plaintext,
+        { protectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
+        { jsonWebKey },
+      ),
     ).resolves.toStrictEqual(compressedProtectedAndRecipientAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Unprotected and Recipient Unprotected Attached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { unprotectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader }, { jwk }),
+      serialize(
+        plaintext,
+        { unprotectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
+        { jsonWebKey },
+      ),
     ).resolves.toStrictEqual(compressedUnprotectedAndRecipientAttachedTokenNoAad);
   });
 
@@ -1045,26 +1064,26 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algZipKidHeader },
-        { jwk },
+        { jsonWebKey },
       ),
     ).resolves.toStrictEqual(compressedFullAttachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Protected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: algEncZipJkuKidHeader }, { jwk, detached: true }),
+      serialize(plaintext, { protectedHeader: algEncZipJkuKidHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(compressedProtectedDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Unprotected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { unprotectedHeader: algEncZipJkuKidHeader }, { jwk, detached: true }),
+      serialize(plaintext, { unprotectedHeader: algEncZipJkuKidHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(compressedUnprotectedDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Recipient Unprotected Detached Token with no Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { recipientUnprotectedHeader: algEncZipJkuKidHeader }, { jwk, detached: true }),
+      serialize(plaintext, { recipientUnprotectedHeader: algEncZipJkuKidHeader }, { jsonWebKey, detached: true }),
     ).resolves.toStrictEqual(compressedRecipientDetachedTokenNoAad);
   });
 
@@ -1073,7 +1092,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: algZipJkuKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedProtectedAndUnprotectedDetachedTokenNoAad);
   });
@@ -1083,7 +1102,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedProtectedAndRecipientDetachedTokenNoAad);
   });
@@ -1093,7 +1112,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedUnprotectedAndRecipientDetachedTokenNoAad);
   });
@@ -1103,20 +1122,20 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algZipKidHeader },
-        { jwk, detached: true },
+        { jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedFullDetachedTokenNoAad);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Protected Attached Token with Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: algEncJkuKidHeader }, { aad: additionalAuthenticatedData, jwk }),
+      serialize(plaintext, { protectedHeader: algEncJkuKidHeader }, { additionalAuthenticatedData, jsonWebKey }),
     ).resolves.toStrictEqual(uncompressedProtectedAttachedToken);
   });
 
   it('should serialize a Flattened JSON Web Encryption Uncompressed Unprotected Attached Token with Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { unprotectedHeader: algEncJkuKidHeader }, { aad: additionalAuthenticatedData, jwk }),
+      serialize(plaintext, { unprotectedHeader: algEncJkuKidHeader }, { additionalAuthenticatedData, jsonWebKey }),
     ).resolves.toStrictEqual(uncompressedUnprotectedAttachedToken);
   });
 
@@ -1125,7 +1144,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { recipientUnprotectedHeader: algEncJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(uncompressedRecipientAttachedToken);
   });
@@ -1135,7 +1154,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: algJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(uncompressedProtectedAndUnprotectedAttachedToken);
   });
@@ -1145,7 +1164,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(uncompressedProtectedAndRecipientAttachedToken);
   });
@@ -1155,7 +1174,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(uncompressedUnprotectedAndRecipientAttachedToken);
   });
@@ -1165,7 +1184,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(uncompressedFullAttachedToken);
   });
@@ -1175,7 +1194,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: algEncJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedProtectedDetachedToken);
   });
@@ -1185,7 +1204,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: algEncJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedUnprotectedDetachedToken);
   });
@@ -1195,7 +1214,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { recipientUnprotectedHeader: algEncJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedRecipientDetachedToken);
   });
@@ -1205,7 +1224,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: algJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedProtectedAndUnprotectedDetachedToken);
   });
@@ -1215,7 +1234,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedProtectedAndRecipientDetachedToken);
   });
@@ -1225,7 +1244,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: encHeader, recipientUnprotectedHeader: algJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedUnprotectedAndRecipientDetachedToken);
   });
@@ -1235,20 +1254,20 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(uncompressedFullDetachedToken);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Protected Attached Token with Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { protectedHeader: algEncZipJkuKidHeader }, { aad: additionalAuthenticatedData, jwk }),
+      serialize(plaintext, { protectedHeader: algEncZipJkuKidHeader }, { additionalAuthenticatedData, jsonWebKey }),
     ).resolves.toStrictEqual(compressedProtectedAttachedToken);
   });
 
   it('should serialize a Flattened JSON Web Encryption Compressed Unprotected Attached Token with Additional Authenticated Data.', async () => {
     await expect(
-      serialize(plaintext, { unprotectedHeader: algEncZipJkuKidHeader }, { aad: additionalAuthenticatedData, jwk }),
+      serialize(plaintext, { unprotectedHeader: algEncZipJkuKidHeader }, { additionalAuthenticatedData, jsonWebKey }),
     ).resolves.toStrictEqual(compressedUnprotectedAttachedToken);
   });
 
@@ -1257,7 +1276,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { recipientUnprotectedHeader: algEncZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(compressedRecipientAttachedToken);
   });
@@ -1267,7 +1286,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: algZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(compressedProtectedAndUnprotectedAttachedToken);
   });
@@ -1277,7 +1296,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(compressedProtectedAndRecipientAttachedToken);
   });
@@ -1287,7 +1306,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(compressedUnprotectedAndRecipientAttachedToken);
   });
@@ -1297,7 +1316,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algZipKidHeader },
-        { aad: additionalAuthenticatedData, jwk },
+        { additionalAuthenticatedData, jsonWebKey },
       ),
     ).resolves.toStrictEqual(compressedFullAttachedToken);
   });
@@ -1307,7 +1326,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: algEncZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedProtectedDetachedToken);
   });
@@ -1317,7 +1336,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: algEncZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedUnprotectedDetachedToken);
   });
@@ -1327,7 +1346,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { recipientUnprotectedHeader: algEncZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedRecipientDetachedToken);
   });
@@ -1337,7 +1356,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: algZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedProtectedAndUnprotectedDetachedToken);
   });
@@ -1347,7 +1366,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedProtectedAndRecipientDetachedToken);
   });
@@ -1357,7 +1376,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { unprotectedHeader: encHeader, recipientUnprotectedHeader: algZipJkuKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedUnprotectedAndRecipientDetachedToken);
   });
@@ -1367,7 +1386,7 @@ describe('serialize()', () => {
       serialize(
         plaintext,
         { protectedHeader: encHeader, unprotectedHeader: jkuHeader, recipientUnprotectedHeader: algZipKidHeader },
-        { aad: additionalAuthenticatedData, jwk, detached: true },
+        { additionalAuthenticatedData, jsonWebKey, detached: true },
       ),
     ).resolves.toStrictEqual(compressedFullDetachedToken);
   });

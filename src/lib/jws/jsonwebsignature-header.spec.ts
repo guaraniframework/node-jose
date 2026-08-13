@@ -6,7 +6,7 @@ import { JsonWebSignatureDigitalSignatureBackend } from '../jwa/jws/jsonwebsigna
 import { JsonWebSignatureHeader } from './jsonwebsignature-header';
 import { JsonWebSignatureHeaderParameters } from './jsonwebsignature-header.parameters';
 
-const invalidAlgs: any[] = [
+const invalidDigitalSignatureAlgorithms: any[] = [
   undefined,
   null,
   true,
@@ -75,12 +75,15 @@ describe('JSON Web Signature Header', () => {
   const parameters: JsonWebSignatureHeaderParameters = { alg: 'ES256' };
 
   describe('constructor', () => {
-    it.each(invalidAlgs)('should throw when the provided JOSE Header Parameter "alg" is invalid.', (alg) => {
-      expect(() => new JsonWebSignatureHeader({ ...parameters, alg })).toThrowWithMessage(
-        InvalidJoseHeaderError,
-        'Invalid JOSE Header Parameter "alg".',
-      );
-    });
+    it.each(invalidDigitalSignatureAlgorithms)(
+      'should throw when the provided JOSE Header Parameter "alg" is invalid.',
+      (alg) => {
+        expect(() => new JsonWebSignatureHeader({ ...parameters, alg })).toThrowWithMessage(
+          InvalidJoseHeaderError,
+          'Invalid JOSE Header Parameter "alg".',
+        );
+      },
+    );
 
     it.each(invalidB64s)('should throw when the provided JOSE Header Parameter "b64" is invalid.', (b64) => {
       expect(() => new JsonWebSignatureHeader({ ...parameters, b64 })).toThrowWithMessage(

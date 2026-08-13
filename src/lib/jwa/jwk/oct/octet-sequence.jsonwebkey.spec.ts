@@ -57,14 +57,14 @@ describe('Octet Sequence JSON Web Key', () => {
     });
 
     it('should return an Octet Sequence JSON Web Key.', () => {
-      let jwk!: OctetSequenceJsonWebKey;
+      let jsonWebKey!: OctetSequenceJsonWebKey;
 
-      expect(() => (jwk = new OctetSequenceJsonWebKey(parameters))).not.toThrow();
+      expect(() => (jsonWebKey = new OctetSequenceJsonWebKey(parameters))).not.toThrow();
 
-      expect(jwk.parameters).toStrictEqual(parameters);
+      expect(jsonWebKey.parameters).toStrictEqual(parameters);
 
-      expect(jwk.cryptoKey).toBeInstanceOf(KeyObject);
-      expect(jwk.cryptoKey.export({ format: 'jwk' })).toStrictEqual(parameters);
+      expect(jsonWebKey.cryptoKey).toBeInstanceOf(KeyObject);
+      expect(jsonWebKey.cryptoKey.export({ format: 'jwk' })).toStrictEqual(parameters);
     });
   });
 
@@ -98,37 +98,39 @@ describe('Octet Sequence JSON Web Key', () => {
 
   describe('getThumbprint()', () => {
     it('should return the Thumbprint of the JSON Web Key.', () => {
-      const jwk = new OctetSequenceJsonWebKey(parameters);
+      const jsonWebKey = new OctetSequenceJsonWebKey(parameters);
       const createHashSpy = jest.spyOn(crypto, 'createHash');
 
-      expect(jwk.getThumbprint().toString('base64url')).toStrictEqual('vM7XT8f5s2ATReLbN47BWpPOuo7CTV1uv-zR8R9aOuk');
+      expect(jsonWebKey.getThumbprint().toString('base64url')).toStrictEqual(
+        'vM7XT8f5s2ATReLbN47BWpPOuo7CTV1uv-zR8R9aOuk',
+      );
       expect(createHashSpy).toHaveBeenCalledOnce();
     });
   });
 
   describe('getThumbprintURI()', () => {
     it('should return the Thumbprint of the JSON Web Key.', () => {
-      const jwk = new OctetSequenceJsonWebKey(parameters);
+      const jsonWebKey = new OctetSequenceJsonWebKey(parameters);
 
-      expect(jwk.getThumbprintURI()).toStrictEqual(
+      expect(jsonWebKey.getThumbprintURI()).toStrictEqual(
         'urn:ietf:params:oauth:jwk-thumbprint:sha-256:vM7XT8f5s2ATReLbN47BWpPOuo7CTV1uv-zR8R9aOuk',
       );
     });
   });
 
   describe('toJSON()', () => {
-    const jwk = new OctetSequenceJsonWebKey(parameters);
+    const jsonWebKey = new OctetSequenceJsonWebKey(parameters);
 
     it('should return the JSON Web Key Parameters of the Key when exportPrivate is undefined.', () => {
-      expect(jwk.toJSON()).toStrictEqual(parameters);
+      expect(jsonWebKey.toJSON()).toStrictEqual(parameters);
     });
 
     it('should return the JSON Web Key Parameters of the Key when exportPrivate is false.', () => {
-      expect(jwk.toJSON(false)).toStrictEqual(parameters);
+      expect(jsonWebKey.toJSON(false)).toStrictEqual(parameters);
     });
 
     it('should return the JSON Web Key Parameters of the Key when exportPrivate is true.', () => {
-      expect(jwk.toJSON(true)).toStrictEqual(parameters);
+      expect(jsonWebKey.toJSON(true)).toStrictEqual(parameters);
     });
   });
 });
