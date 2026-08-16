@@ -4,6 +4,8 @@ export { InvalidJsonWebEncryptionError } from './lib/errors/invalid-jsonwebencry
 export { InvalidJsonWebKeyError } from './lib/errors/invalid-jsonwebkey.error';
 export { InvalidJsonWebKeySetError } from './lib/errors/invalid-jsonwebkeyset.error';
 export { InvalidJsonWebSignatureError } from './lib/errors/invalid-jsonwebsignature.error';
+export { InvalidJsonWebTokenError } from './lib/errors/invalid-jsonwebtoken.error';
+export { InvalidJsonWebTokenClaimsError } from './lib/errors/invalid-jsonwebtoken-claims.error';
 export { JoseError } from './lib/errors/jose.error';
 // #endregion
 
@@ -82,5 +84,11 @@ export { type GeneralJsonWebSignatureToken } from './lib/jws/serializations/gene
 // #endregion
 
 // #region JSON Web Token
+export { type JsonWebTokenClaims } from './lib/jwt/jsonwebtoken-claims';
 export { type JsonWebTokenClaimsParameters } from './lib/jwt/jsonwebtoken-claims.parameters';
+export { jwt } from './lib/jwt/serializations';
+export { type EncryptedJsonWebToken } from './lib/jwt/serializations/encrypted/encrypted-jsonwebtoken';
+export { type EncryptedJsonWebTokenParameters } from './lib/jwt/serializations/encrypted/encrypted-jsonwebtoken.parameters';
+export { type SignedJsonWebToken } from './lib/jwt/serializations/signed/signed-jsonwebtoken';
+export { type SignedJsonWebTokenParameters } from './lib/jwt/serializations/signed/signed-jsonwebtoken.parameters';
 // #endregion
