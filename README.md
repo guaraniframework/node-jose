@@ -1,17 +1,16 @@
-# @revensky/jose
+# @guarani/jose
 
 Implementation of the works of the JOSE Work Group.
 
 This package implements the following RFCs.
 
-- [] RFC 7515 JSON Web Signature (JWS)
-- [] RFC 7516 JSON Web Encryption (JWE)
-- [] RFC 7517 JSON Web Key (JWK)
-- [] RFC 7518 JSON Web Algorithms (JWA)
-- [] RFC 7519 JSON Web Token (JWT)
-- [] RFC 7520 Examples of Protecting Content Using JSON Object Signing and Encryption (JOSE)
-- [] RFC 7638 JSON Web Key (JWK) Thumbprint
-- [] RFC 7797 JSON Web Signature (JWS) Unencoded Payload Option
-- [] RFC 8037 CFRG Elliptic Curve Diffie-Hellman (ECDH) and Signatures in JSON Object Signing and Encryption (JOSE)
-- [] RFC 8812 JSON Object Signing and Encryption (JOSE) Registration for Web Authentication (WebAuthn) Algorithms
-- [] RFC 9278 JWK Thumbprint URI
+- [x] RFC 7515 JSON Web Signature (JWS)
+- [x] RFC 7516 JSON Web Encryption (JWE)
+- [x] RFC 7517 JSON Web Key (JWK)
+- [x] RFC 7518 JSON Web Algorithms (JWA)
+- [x] RFC 7519 JSON Web Token (JWT)
+- [x] RFC 7638 JSON Web Key (JWK) Thumbprint
+- [x] RFC 7797 JSON Web Signature (JWS) Unencoded Payload Option
+- [x] RFC 8037 CFRG Elliptic Curve Diffie-Hellman (ECDH) and Signatures in JSON Object Signing and Encryption (JOSE)
+- [x] RFC 8812 JSON Object Signing and Encryption (JOSE) Registration for Web Authentication (WebAuthn) Algorithms
+- [x] RFC 9278 JWK Thumbprint URI
