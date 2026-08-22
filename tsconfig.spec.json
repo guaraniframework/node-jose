@@ -1,4 +1,7 @@
 {
+  "compilerOptions": {
+    "rootDir": "src"
+  },
   "extends": "./tsconfig.json",
   "include": ["**/*.spec.ts", "src/lib/jest-extended.d.ts"]
 }

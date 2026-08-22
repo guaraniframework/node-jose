@@ -53,7 +53,6 @@
     "resolvePackageJsonExports": false,
     "resolvePackageJsonImports": false,
     "rewriteRelativeImportExtensions": true,
-    "rootDir": "src",
     "skipDefaultLibCheck": false,
     "skipLibCheck": true,
     "strict": true,
@@ -69,6 +68,5 @@
     "useDefineForClassFields": true,
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": false
-  },
-  "include": ["src/**/*"]
+  }
 }
