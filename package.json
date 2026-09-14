@@ -1,10 +1,11 @@
 {
   "name": "@guarani/jose",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Implementation of the RFCs of the JOSE Working Group.",
   "license": "MIT",
   "homepage": "https://github.com/guaraniframework/node-jose#readme",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],

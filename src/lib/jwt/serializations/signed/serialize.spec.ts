@@ -3,6 +3,7 @@ import { Buffer } from 'buffer';
 import { InvalidJsonWebTokenError } from '../../../errors/invalid-jsonwebtoken.error';
 import { OctetSequenceJsonWebKey } from '../../../jwa/jwk/oct/octet-sequence.jsonwebkey';
 import { JsonWebSignatureHeaderParameters } from '../../../jws/jsonwebsignature-header.parameters';
+import { JsonWebTokenClaims } from '../../jsonwebtoken-claims';
 import { JsonWebTokenClaimsParameters } from '../../jsonwebtoken-claims.parameters';
 import { serialize } from './serialize';
 
@@ -131,5 +132,9 @@ describe('serialize()', () => {
 
   it('should serialize the Signed JSON Web Token.', async () => {
     await expect(serialize(claims, header, { jsonWebKey })).resolves.toStrictEqual(token);
+  });
+
+  it('should serialize the Signed JSON Web Token with an instance of JSON Web Token Claims.', async () => {
+    await expect(serialize(new JsonWebTokenClaims(claims), header, { jsonWebKey })).resolves.toStrictEqual(token);
   });
 });

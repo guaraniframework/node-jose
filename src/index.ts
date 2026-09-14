@@ -84,7 +84,7 @@ export { type GeneralJsonWebSignatureToken } from './lib/jws/serializations/gene
 // #endregion
 
 // #region JSON Web Token
-export { type JsonWebTokenClaims } from './lib/jwt/jsonwebtoken-claims';
+export { JsonWebTokenClaims } from './lib/jwt/jsonwebtoken-claims';
 export { type JsonWebTokenClaimsParameters } from './lib/jwt/jsonwebtoken-claims.parameters';
 export { jwt } from './lib/jwt/serializations';
 export { type EncryptedJsonWebToken } from './lib/jwt/serializations/encrypted/encrypted-jsonwebtoken';

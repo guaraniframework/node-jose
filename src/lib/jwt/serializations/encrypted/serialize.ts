@@ -8,7 +8,7 @@ import { EncryptedJsonWebTokenSerializationOptions } from './encrypted-jsonwebto
 /**
  * Serializes the provided JSON Web Token Parameters into an Encrypted Token.
  *
- * @param claims JSON Web Token Claims Parameters.
+ * @param claims JSON Web Token Claims.
  * @param protectedHeader JSON Web Encryption Protected Header Parameters.
  * @param options Encrypted JSON Web Token serialization options.
  * @throws {TypeError} One of the provided arguments is invalid.
@@ -19,11 +19,11 @@ import { EncryptedJsonWebTokenSerializationOptions } from './encrypted-jsonwebto
  * @returns Encrypted JSON Web Token.
  */
 export async function serialize(
-  claims: JsonWebTokenClaimsParameters,
+  claims: JsonWebTokenClaimsParameters | JsonWebTokenClaims,
   protectedHeader: JsonWebEncryptionHeaderParameters,
   options: EncryptedJsonWebTokenSerializationOptions = {},
 ): Promise<string> {
-  const jsonWebTokenClaims = new JsonWebTokenClaims(claims);
+  const jsonWebTokenClaims = claims instanceof JsonWebTokenClaims ? claims : new JsonWebTokenClaims(claims);
 
   try {
     return await jwe.compact.serialize(jsonWebTokenClaims.toBuffer(), protectedHeader, {

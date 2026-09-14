@@ -5,6 +5,7 @@ import { AESKWJsonWebEncryptionKeyManagementBackend } from '../../../jwa/jwe/alg
 import { AESCBCJsonWebEncryptionContentEncryptionBackend } from '../../../jwa/jwe/enc/aescbc/aescbc-jsonwebencryption-content-encryption.backend';
 import { OctetSequenceJsonWebKey } from '../../../jwa/jwk/oct/octet-sequence.jsonwebkey';
 import { JsonWebEncryptionHeaderParameters } from '../../../jwe/jsonwebencryption-header.parameters';
+import { JsonWebTokenClaims } from '../../jsonwebtoken-claims';
 import { JsonWebTokenClaimsParameters } from '../../jsonwebtoken-claims.parameters';
 import { serialize } from './serialize';
 
@@ -147,5 +148,9 @@ describe('serialize()', () => {
 
   it('should serialize the Encrypted JSON Web Token.', async () => {
     await expect(serialize(claims, header, { jsonWebKey })).resolves.toStrictEqual(token);
+  });
+
+  it('should serialize the Encrypted JSON Web Token with an instance of JSON Web Token Claims.', async () => {
+    await expect(serialize(new JsonWebTokenClaims(claims), header, { jsonWebKey })).resolves.toStrictEqual(token);
   });
 });

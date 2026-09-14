@@ -8,7 +8,7 @@ import { SignedJsonWebTokenSerializationOptions } from './signed-jsonwebtoken-se
 /**
  * Serializes the provided JSON Web Token Parameters into a Signed Token.
  *
- * @param claims JSON Web Token Claims Parameters.
+ * @param claims JSON Web Token Claims.
  * @param protectedHeader JSON Web Signature Protected Header Parameters.
  * @param options Signed JSON Web Token serialization options.
  * @throws {TypeError} One of the provided arguments is invalid.
@@ -19,11 +19,11 @@ import { SignedJsonWebTokenSerializationOptions } from './signed-jsonwebtoken-se
  * @returns Signed JSON Web Token.
  */
 export async function serialize(
-  claims: JsonWebTokenClaimsParameters,
+  claims: JsonWebTokenClaimsParameters | JsonWebTokenClaims,
   protectedHeader: JsonWebSignatureHeaderParameters,
   options: SignedJsonWebTokenSerializationOptions = {},
 ): Promise<string> {
-  const jsonWebTokenClaims = new JsonWebTokenClaims(claims);
+  const jsonWebTokenClaims = claims instanceof JsonWebTokenClaims ? claims : new JsonWebTokenClaims(claims);
 
   try {
     return await jws.compact.serialize(jsonWebTokenClaims.toBuffer(), protectedHeader, options);
