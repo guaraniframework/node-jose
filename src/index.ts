@@ -10,7 +10,7 @@ export { JoseError } from './lib/errors/jose.error';
 // #endregion
 
 // #region JOSE
-export { type JoseHeader } from './lib/jose/jose-header';
+export { JoseHeader } from './lib/jose/jose-header';
 export { type JoseHeaderParameters } from './lib/jose/jose-header.parameters';
 // #endregion
 
@@ -23,26 +23,27 @@ export { type PBES2JsonWebEncryptionKeyManagementHeaderParameters } from './lib/
 export { type ContentEncryptionAlgorithm } from './lib/jwa/jwe/enc/content-encryption-algorithm.type';
 export { type CompressionAlgorithm } from './lib/jwa/jwe/zip/compression-algorithm.type';
 export { type Curve } from './lib/jwa/jwk/curve.type';
-export { type EllipticCurveJsonWebKey } from './lib/jwa/jwk/ec/elliptic-curve.jsonwebkey';
+export { EllipticCurveJsonWebKey } from './lib/jwa/jwk/ec/elliptic-curve.jsonwebkey';
 export { type EllipticCurve } from './lib/jwa/jwk/ec/elliptic-curve.type';
 export { type EllipticCurveJsonWebKeyParameters } from './lib/jwa/jwk/ec/elliptic-curve-jsonwebkey.parameters';
 export { type KeyOperation } from './lib/jwa/jwk/key-operation.type';
 export { type KeyType } from './lib/jwa/jwk/key-type.type';
-export { type OctetSequenceJsonWebKey } from './lib/jwa/jwk/oct/octet-sequence.jsonwebkey';
+export { OctetSequenceJsonWebKey } from './lib/jwa/jwk/oct/octet-sequence.jsonwebkey';
 export { type OctetSequenceJsonWebKeyParameters } from './lib/jwa/jwk/oct/octet-sequence-jsonwebkey.parameters';
 export { type EdwardsCurve } from './lib/jwa/jwk/okp/edwards-curve.type';
 export { type EdwardsMontgomeryCurve } from './lib/jwa/jwk/okp/edwards-montgomery-curve.type';
 export { type MontgomeryCurve } from './lib/jwa/jwk/okp/montgomery-curve.type';
-export { type OctetKeyPairJsonWebKey } from './lib/jwa/jwk/okp/octet-key-pair.jsonwebkey';
+export { OctetKeyPairJsonWebKey } from './lib/jwa/jwk/okp/octet-key-pair.jsonwebkey';
 export { type OctetKeyPairJsonWebKeyParameters } from './lib/jwa/jwk/okp/octet-key-pair-jsonwebkey.parameters';
 export { type PublicKeyUse } from './lib/jwa/jwk/public-key-use.type';
-export { type RsaJsonWebKey } from './lib/jwa/jwk/rsa/rsa.jsonwebkey';
+export { RsaJsonWebKey } from './lib/jwa/jwk/rsa/rsa.jsonwebkey';
 export { type RsaJsonWebKeyParameters } from './lib/jwa/jwk/rsa/rsa-jsonwebkey.parameters';
 export { type DigitalSignatureAlgorithm } from './lib/jwa/jws/digital-signature-algorithm.type';
 // #endregion
 
 // #region JSON Web Encryption
-export { type JsonWebEncryptionHeader } from './lib/jwe/jsonwebencryption-header';
+export { createJsonWebEncryptionHeader } from './lib/jwe/create-jsonwebencryption-header';
+export { JsonWebEncryptionHeader } from './lib/jwe/jsonwebencryption-header';
 export { type JsonWebEncryptionHeaderParameters } from './lib/jwe/jsonwebencryption-header.parameters';
 export { jwe } from './lib/jwe/serializations';
 export { type CompactJsonWebEncryption } from './lib/jwe/serializations/compact/compact-jsonwebencryption';
@@ -58,18 +59,19 @@ export { type GeneralJsonWebEncryptionToken } from './lib/jwe/serializations/gen
 
 // #region JSON Web Key
 export { jwk } from './lib/jwk';
-export { type JsonWebKey } from './lib/jwk/jsonwebkey';
+export { JsonWebKey } from './lib/jwk/jsonwebkey';
 export { type JsonWebKeyParameters } from './lib/jwk/jsonwebkey.parameters';
 // #endregion
 
 // #region JSON Web Key Set
 export { jwks } from './lib/jwks';
-export { type JsonWebKeySet } from './lib/jwks/jsonwebkeyset';
+export { JsonWebKeySet } from './lib/jwks/jsonwebkeyset';
 export { type JsonWebKeySetParameters } from './lib/jwks/jsonwebkeyset.parameters';
 // #endregion
 
 // #region JSON Web Signature
-export { type JsonWebSignatureHeader } from './lib/jws/jsonwebsignature-header';
+export { createJsonWebSignatureHeader } from './lib/jws/create-jsonwebsignature-header';
+export { JsonWebSignatureHeader } from './lib/jws/jsonwebsignature-header';
 export { type JsonWebSignatureHeaderParameters } from './lib/jws/jsonwebsignature-header.parameters';
 export { jws } from './lib/jws/serializations';
 export { type CompactJsonWebSignature } from './lib/jws/serializations/compact/compact-jsonwebsignature';
