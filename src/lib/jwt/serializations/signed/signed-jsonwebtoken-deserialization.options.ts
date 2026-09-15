@@ -1,5 +1,6 @@
 import { DigitalSignatureAlgorithm } from '../../../jwa/jws/digital-signature-algorithm.type';
 import { JsonWebKey } from '../../../jwk/jsonwebkey';
+import { JsonWebTokenClaimsOptions } from '../../jsonwebtoken-claims.options';
 
 /**
  * Signed JSON Web Token deserialization options.
@@ -14,4 +15,9 @@ export interface SignedJsonWebTokenDeserializationOptions {
    * Expected JSON Web Signature Digital Signature Algorithms.
    */
   readonly expectedDigitalSignatureAlgorithms?: DigitalSignatureAlgorithm[];
+
+  /**
+   * JSON Web Token Claims Options.
+   */
+  readonly claimsOptions?: JsonWebTokenClaimsOptions;
 }

@@ -2,6 +2,7 @@ import { KeyManagementAlgorithm } from '../../../jwa/jwe/alg/key-management-algo
 import { ContentEncryptionAlgorithm } from '../../../jwa/jwe/enc/content-encryption-algorithm.type';
 import { CompressionAlgorithm } from '../../../jwa/jwe/zip/compression-algorithm.type';
 import { JsonWebKey } from '../../../jwk/jsonwebkey';
+import { JsonWebTokenClaimsOptions } from '../../jsonwebtoken-claims.options';
 
 /**
  * Encrypted JSON Web Token deserialization options.
@@ -26,4 +27,9 @@ export interface EncryptedJsonWebTokenDeserializationOptions {
    * Expected JSON Web Encryption Compression Algorithms.
    */
   readonly expectedCompressionAlgorithms?: CompressionAlgorithm[];
+
+  /**
+   * JSON Web Token Claims Options.
+   */
+  readonly claimsOptions?: JsonWebTokenClaimsOptions;
 }

@@ -6,6 +6,7 @@ import { InvalidJsonWebTokenError } from '../../../errors/invalid-jsonwebtoken.e
 import { JsonWebSignatureHeader } from '../../../jws/jsonwebsignature-header';
 import { jws } from '../../../jws/serializations';
 import { JsonWebTokenClaims } from '../../jsonwebtoken-claims';
+import { JsonWebTokenClaimsOptions } from '../../jsonwebtoken-claims.options';
 import { JsonWebTokenClaimsParameters } from '../../jsonwebtoken-claims.parameters';
 import { SignedJsonWebTokenParameters } from './signed-jsonwebtoken.parameters';
 
@@ -13,12 +14,16 @@ import { SignedJsonWebTokenParameters } from './signed-jsonwebtoken.parameters';
  * Decodes the provided Signed JSON Web Token into its Parameters.
  *
  * @param token Signed JSON Web Token.
+ * @param options JSON Web Token Claims Options.
  * @throws {TypeError} The provided Signed JSON Web Token is invalid.
  * @throws {InvalidJsonWebTokenError} Failed to decode the provided Signed JSON Web Token.
  * @throws {InvalidJsonWebTokenClaimsError} The JSON Web Token Claims of the provided Signed JSON Web Token are invalid.
  * @returns Signed JSON Web Token Parameters.
  */
-export async function decode(token: string): Promise<SignedJsonWebTokenParameters> {
+export async function decode(
+  token: string,
+  options?: JsonWebTokenClaimsOptions,
+): Promise<SignedJsonWebTokenParameters> {
   if (!isNonEmptyString(token)) {
     throw new TypeError('The provided Signed JSON Web Token is invalid.');
   }
@@ -37,7 +42,7 @@ export async function decode(token: string): Promise<SignedJsonWebTokenParameter
     throw new InvalidJsonWebTokenError('The provided JSON Web Token is invalid.', { cause: error });
   }
 
-  const claims = new JsonWebTokenClaims(claimsParameters);
+  const claims = new JsonWebTokenClaims(claimsParameters, options);
 
   return { header: protectedHeader, claims, signature };
 }

@@ -26,7 +26,7 @@ export async function deserialize(
     const { payload, protectedHeader } = await jws.compact.deserialize(token, options);
     const claimsParameters = jsonParse(payload.toString('utf8')) as JsonWebTokenClaimsParameters;
 
-    return { claims: new JsonWebTokenClaims(claimsParameters), header: protectedHeader };
+    return { claims: new JsonWebTokenClaims(claimsParameters, options.claimsOptions), header: protectedHeader };
   } catch (error: unknown) {
     throw new InvalidJsonWebTokenError('The provided JSON Web Token is invalid.', { cause: error });
   }
