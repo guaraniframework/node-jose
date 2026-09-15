@@ -1,6 +1,6 @@
 {
   "name": "@guarani/jose",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "description": "Implementation of the RFCs of the JOSE Working Group.",
   "license": "MIT",
   "homepage": "https://github.com/guaraniframework/node-jose#readme",

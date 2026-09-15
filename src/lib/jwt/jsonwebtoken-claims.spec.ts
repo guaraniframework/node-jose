@@ -4,6 +4,84 @@ import { InvalidJsonWebTokenClaimsError } from '../errors/invalid-jsonwebtoken-c
 import { JsonWebTokenClaims } from './jsonwebtoken-claims';
 import { JsonWebTokenClaimsParameters } from './jsonwebtoken-claims.parameters';
 
+const invalidOptions: any[] = [null, true, 1, 1.2, 1n, 'a', Symbol('a'), Buffer, Buffer.alloc(1), () => 1, []];
+
+const invalidIgnoreExpireds: any[] = [
+  undefined,
+  null,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+];
+
+const invalidValidationOptions: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  [],
+];
+
+const invalidEssentialValidationOptions: any[] = [
+  undefined,
+  null,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+];
+
+const invalidValuesValidationOptions: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  {},
+  [],
+];
+
+const invalidParameters: any[] = [
+  undefined,
+  null,
+  true,
+  1,
+  1.2,
+  1n,
+  'a',
+  Symbol('a'),
+  Buffer,
+  Buffer.alloc(1),
+  () => 1,
+  [],
+];
+
 const invalidClaims: any[] = [
   undefined,
   null,
@@ -162,6 +240,70 @@ const invalidIsJsonWebTokenClaimsParameters: any[] = [
 
 describe('JSON Web Token Claims', () => {
   describe('constructor', () => {
+    it.each(invalidOptions)('should throw when the provided JSON Web Token Claims Options is invalid.', (options) => {
+      expect(() => new JsonWebTokenClaims({}, options)).toThrowWithMessage(
+        TypeError,
+        'The provided JSON Web Token Claims Options is invalid.',
+      );
+    });
+
+    it.each(invalidIgnoreExpireds)(
+      'should throw when the provided JSON Web Token Claims Option "ignoreExpired" is invalid.',
+      (ignoreExpired) => {
+        expect(() => new JsonWebTokenClaims({}, { ignoreExpired })).toThrowWithMessage(
+          TypeError,
+          'The provided JSON Web Token Claims Option "ignoreExpired" is invalid.',
+        );
+      },
+    );
+
+    it.each(invalidValidationOptions)(
+      'should throw when the provided JSON Web Token Claims Option "validationOptions" is invalid.',
+      (validationOptions) => {
+        expect(() => new JsonWebTokenClaims({}, { validationOptions })).toThrowWithMessage(
+          TypeError,
+          'The provided JSON Web Token Claims Option "validationOptions" is invalid.',
+        );
+      },
+    );
+
+    it.each(invalidEssentialValidationOptions)(
+      'should throw when the provided JSON Web Token Claim Validation Option "essential" is invalid.',
+      (essential) => {
+        expect(() => {
+          return new JsonWebTokenClaims({}, { validationOptions: { iss: { essential } } });
+        }).toThrowWithMessage(TypeError, 'The provided JSON Web Token Claim Validation Option "essential" is invalid.');
+      },
+    );
+
+    it('should throw when the providing both "value" and "values" JSON Web Token Claim Validation Options.', () => {
+      expect(() => {
+        return new JsonWebTokenClaims({}, { validationOptions: { iss: { value: '', values: [''] } } });
+      }).toThrowWithMessage(
+        TypeError,
+        'Cannot have both "value" and "values" JSON Web Token Claim Validation Options.',
+      );
+    });
+
+    it.each(invalidValuesValidationOptions)(
+      'should throw when the provided JSON Web Token Claim Validation Option "values" is invalid.',
+      (values) => {
+        expect(() => {
+          return new JsonWebTokenClaims({}, { validationOptions: { iss: { values } } });
+        }).toThrowWithMessage(TypeError, 'The provided JSON Web Token Claim Validation Option "values" is invalid.');
+      },
+    );
+
+    it.each(invalidParameters)(
+      'should throw when the provided JSON Web Token Claims Parameters is invalid.',
+      (parameters) => {
+        expect(() => new JsonWebTokenClaims(parameters)).toThrowWithMessage(
+          TypeError,
+          'The provided JSON Web Token Claims Parameters is invalid.',
+        );
+      },
+    );
+
     it.each(invalidClaims)('should throw when the provided JSON Web Token Claims Parameters is invalid.', (claims) => {
       expect(() => new JsonWebTokenClaims(claims)).toThrowWithMessage(
         TypeError,
@@ -218,25 +360,50 @@ describe('JSON Web Token Claims', () => {
       );
     });
 
+    it('should throw when not providing an essential JSON Web Token Claim.', () => {
+      expect(() => new JsonWebTokenClaims({}, { validationOptions: { iss: { essential: true } } })).toThrowWithMessage(
+        InvalidJsonWebTokenClaimsError,
+        'Missing required JSON Web Token Claim "iss".',
+      );
+    });
+
+    it('should throw when a provided JSON Web Token Claim does not match its expected value.', () => {
+      expect(() => {
+        return new JsonWebTokenClaims(
+          { iss: 'https://issuer.example.com' },
+          { validationOptions: { iss: { value: 'https://issuer.example.org' } } },
+        );
+      }).toThrowWithMessage(InvalidJsonWebTokenClaimsError, 'Unexpected value for JSON Web Token Claim "iss".');
+    });
+
+    it('should throw when a provided JSON Web Token Claim does not match one of its expected values.', () => {
+      expect(() => {
+        return new JsonWebTokenClaims(
+          { iss: 'https://issuer.example.com' },
+          { validationOptions: { iss: { values: ['https://issuer.example.org', 'https://issuer.example.net'] } } },
+        );
+      }).toThrowWithMessage(InvalidJsonWebTokenClaimsError, 'Unexpected value for JSON Web Token Claim "iss".');
+    });
+
     it('should return a JSON Web Token Claims with an Issuer.', () => {
       let claims!: JsonWebTokenClaims;
 
       expect(() => (claims = new JsonWebTokenClaims({ iss: 'https://issuer.example.com' }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ iss: 'https://issuer.example.com' });
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ iss: 'https://issuer.example.com' });
     });
 
     it('should return a JSON Web Token Claims with a Subject.', () => {
       let claims!: JsonWebTokenClaims;
 
       expect(() => (claims = new JsonWebTokenClaims({ sub: 'https://subject.example.com' }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ sub: 'https://subject.example.com' });
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ sub: 'https://subject.example.com' });
     });
 
     it('should return a JSON Web Token Claims with a single Audience.', () => {
       let claims!: JsonWebTokenClaims;
 
       expect(() => (claims = new JsonWebTokenClaims({ aud: 'https://audience.example.com' }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ aud: 'https://audience.example.com' });
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ aud: 'https://audience.example.com' });
     });
 
     it('should return a JSON Web Token Claims with multiple Audiences.', () => {
@@ -248,7 +415,7 @@ describe('JSON Web Token Claims', () => {
         }));
       }).not.toThrow();
 
-      expect(claims.parameters).toStrictEqual({
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({
         aud: ['https://audience.example.com', 'https://audience.example.net'],
       });
     });
@@ -258,7 +425,7 @@ describe('JSON Web Token Claims', () => {
       const exp = Date.now();
 
       expect(() => (claims = new JsonWebTokenClaims({ exp }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ exp });
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ exp });
     });
 
     it('should return a JSON Web Token Claims with a Not Before.', () => {
@@ -266,7 +433,7 @@ describe('JSON Web Token Claims', () => {
       const nbf = 1;
 
       expect(() => (claims = new JsonWebTokenClaims({ nbf }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ nbf });
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ nbf });
     });
 
     it('should return a JSON Web Token Claims with an Issued At.', () => {
@@ -274,14 +441,66 @@ describe('JSON Web Token Claims', () => {
       const iat = Math.floor(Date.now() / 1000);
 
       expect(() => (claims = new JsonWebTokenClaims({ iat }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ iat });
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ iat });
     });
 
     it('should return a JSON Web Token Claims with a JSON Web Token Identifier.', () => {
       let claims!: JsonWebTokenClaims;
 
       expect(() => (claims = new JsonWebTokenClaims({ jti: '758101ac-ce82-49e4-9d43-1e5bfc622593' }))).not.toThrow();
-      expect(claims.parameters).toStrictEqual({ jti: '758101ac-ce82-49e4-9d43-1e5bfc622593' });
+
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({
+        jti: '758101ac-ce82-49e4-9d43-1e5bfc622593',
+      });
+    });
+
+    it('should not throw when the JSON Web Token Claims is expired but the validation option "ignoreExpired" is true.', () => {
+      let claims!: JsonWebTokenClaims;
+      const exp = Math.floor(Date.now() / 1000 - 86400);
+
+      expect(() => (claims = new JsonWebTokenClaims({ exp }, { ignoreExpired: true }))).not.toThrow();
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({ exp });
+    });
+
+    it('should return a JSON Web Token Claims that passes the provided validations.', () => {
+      let claims!: JsonWebTokenClaims;
+      const now = Math.floor(Date.now() / 1000);
+
+      expect(() => {
+        claims = new JsonWebTokenClaims(
+          { iss: 'https://issuer.example.com', exp: now + 86400, iat: now },
+          {
+            validationOptions: {
+              iss: null,
+              sub: { essential: false },
+              aud: { essential: false, value: 'https://audience.example.com' },
+              exp: { value: now + 86400 },
+              iat: { values: [now] },
+              jti: {
+                essential: false,
+                values: ['758101ac-ce82-49e4-9d43-1e5bfc622593', '57936fbd-0868-4ecb-9466-a83e9b5a318b'],
+              },
+            },
+          },
+        );
+      }).not.toThrow();
+
+      expect(claims.parameters).toStrictEqual<JsonWebTokenClaimsParameters>({
+        iss: 'https://issuer.example.com',
+        exp: now + 86400,
+        iat: now,
+      });
+    });
+
+    it('should execute the method "validateCustomClaims()" if defined.', () => {
+      class CustomJsonWebTokenClaims extends JsonWebTokenClaims {
+        protected static override validateCustomClaims(_parameters: JsonWebTokenClaimsParameters): void {}
+      }
+
+      const validateCustomClaimsSpy = jest.spyOn(CustomJsonWebTokenClaims, 'validateCustomClaims' as any);
+
+      expect(() => new CustomJsonWebTokenClaims({})).not.toThrow();
+      expect(validateCustomClaimsSpy).toHaveBeenCalledExactlyOnceWith({});
     });
   });
 
